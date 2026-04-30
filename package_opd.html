@@ -1311,25 +1311,17 @@ function quickPrint(rec){
 // SHARE AS PDF
 //---
 function shareReport(rec){
-  var htmlContent=buildReportHTML(rec, null);
-  var blob=new Blob([htmlContent],{type:'text/html'});
-  var url=URL.createObjectURL(blob);
-  var w=window.open(url,'_blank');
-  if(w){
-    setTimeout(function(){
-      w.focus();
-      // Show share instructions
-      var banner=w.document.createElement('div');
-      banner.className='no-print';
-      banner.style.cssText='position:fixed;top:0;left:0;right:0;background:#0a2e5c;color:#fff;padding:12px 16px;text-align:center;font-family:Arial;font-size:13px;font-weight:700;z-index:9999;display:flex;align-items:center;justify-content:center;gap:12px';
-      banner.innerHTML='<span>📤 To share as PDF: Press</span>'
-        +'<button onclick="window.print()" style="background:#00b4d8;border:none;color:#fff;padding:6px 14px;border-radius:6px;font-weight:900;font-size:13px;cursor:pointer;font-family:Arial">🖨️ Save / Print as PDF</button>'
-        +'<span>then choose "Save as PDF"</span>';
-      w.document.body.insertBefore(banner, w.document.body.firstChild);
-    },600);
-  } else {
-    alert('Please enable pop-ups to share');
-  }
+  var html=buildReportHTML(rec,null);
+  var banner='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start" class="no-print">'
+    +'<button onclick="window.print()" style="background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial">📤 حفظ كـ PDF</button>'
+    +'<button onclick="window.print()" style="background:#0a2e5c;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:Arial">🖨️ طباعة</button>'
+    +'<div style="background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:9px 12px;font-size:11px;color:#0a2e5c;line-height:1.7;flex:1">💡 لحفظ كـ PDF: اضغط الزر أعلاه ← اختر <b>«Save as PDF»</b> من نافذة الطابعة</div>'
+    +'</div>';
+  html=html.replace('<body>','<body>'+banner);
+  var w=window.open('','_blank');
+  if(!w){alert('Please enable pop-ups to share');return;}
+  w.document.write(html);
+  w.document.close();
 }
 
 //---
