@@ -571,7 +571,9 @@ body{background:#f0f2f5;color:#0d1b2a}
     <div class="mmsg" id="modal-msg"></div>
     <div class="mbtns">
       <button class="mb" onclick="closeM()">إغلاق</button>
-      <button class="mb navy" onclick="copyR()">📋 نسخ التقرير</button>
+      <button class="mb" onclick="copyR()">📋 نسخ</button>
+      <button class="mb" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="if(window._curRec)quickPrint(window._curRec)">🖨️ طباعة</button>
+      <button class="mb" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="if(window._curRec)shareReport(window._curRec)">📤 PDF</button>
     </div>
   </div>
 </div>
@@ -1003,6 +1005,7 @@ HVAC DEPARTMENT — King Faisal Medical Complex
   document.getElementById('modal-msg').textContent=txt;
   document.getElementById('modal').style.display='flex';
   window._rpt=txt;
+  window._curRec=rec;
 }
 function closeM(){document.getElementById('modal').style.display='none';}
 function copyR(){
