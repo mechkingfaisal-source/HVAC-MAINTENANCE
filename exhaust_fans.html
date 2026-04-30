@@ -311,7 +311,9 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
     <div class="mmsg" id="modal-msg"></div>
     <div class="mbtns">
       <button class="mb" onclick="closeM()">Close</button>
-      <button class="mb navy" onclick="copyR()">&#128203; Copy Report</button>
+      <button class="mb" onclick="copyR()">&#128203; Copy</button>
+      <button class="mb" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="if(window._curRec)quickPrint(window._curRec)">🖨️ Print</button>
+      <button class="mb" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="if(window._curRec)shareReport(window._curRec)">📤 PDF</button>
     </div>
   </div>
 </div>
@@ -881,6 +883,7 @@ function showMod(rec){
   document.getElementById('modal-msg').textContent=txt;
   document.getElementById('modal').style.display='flex';
   window._rpt=txt;
+  window._curRec=rec;
 }
 function closeM(){ document.getElementById('modal').style.display='none'; }
 function copyR(){
@@ -970,16 +973,89 @@ function quickPrint(rec){
 }
 
 // =====================================================
-// SHARE
+// SHARE AS PDF
 // =====================================================
 function shareReport(rec){
   const checks=CHECKS[rec.lvl].filter(c=>c.type!=='note');
-  let txt=`EX FAN PPM — ${LVL_EN[rec.lvl]}\nUnit: ${rec.unit.name}\nBuilding: ${rec.unit.folderName} › ${rec.unit.subName}\nDate: ${rec.date} | Tech: ${rec.tech}\n──────────────────\n`;
-  checks.forEach(c=>{const v=rec.data[c.id];txt+=`${v===true?'✅':v===false?'❌':'⬜'} ${c.lbl}: ${v===true?'Done':v===false?'Not Done':'—'}\n`;});
-  txt+=`──────────────────\n✅ Done: ${rec.doneT} | ❌ Follow-up: ${rec.notDoneT}`;
-  if(rec.data&&rec.data.notes) txt+=`\n📝 Notes:\n${rec.data.notes}`;
-  if(navigator.share) navigator.share({title:`EX FAN PPM — ${rec.unit.name}`,text:txt}).catch(()=>clipCopy(txt));
-  else clipCopy(txt);
+  const col=rec.unit.color||'#0a2e5c';
+  const w=window.open('','_blank');
+  if(!w){alert('Please enable pop-ups');return;}
+  w.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">
+  <title>EX FAN Report — ${rec.unit.name}</title>
+  <style>
+  *{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,sans-serif;padding:24px;font-size:13px;color:#111;direction:rtl}
+  .no-print{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start}
+  .btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}
+  .btn-pr{background:${col};color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}
+  .info-tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:9px 12px;font-size:11px;color:#0a2e5c;line-height:1.7;flex:1}
+  .hbar{display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:3px solid ${col};margin-bottom:12px}
+  .hcenter{flex:1;padding:0 10px;text-align:center}
+  .hcenter h1{font-size:15px;font-weight:700;color:${col}}
+  .hcenter p{font-size:10px;color:#888;margin-top:2px}
+  .path-bar{background:${col}15;border-left:4px solid ${col};padding:7px 11px;border-radius:6px;margin-bottom:12px;font-size:11px;color:${col};font-weight:600}
+  .meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:12px;border:2px solid ${col};border-radius:10px;overflow:hidden}
+  .meta-box{background:#fff;padding:9px 13px;border-right:.5px solid ${col}44;border-bottom:.5px solid ${col}44}
+  .meta-box:nth-child(even){border-right:none}.meta-box:nth-child(3),.meta-box:nth-child(4){border-bottom:none}
+  .meta-lbl{font-size:10px;color:#8a94a6;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+  .meta-val{font-size:14px;font-weight:800;color:${col};font-family:Arial,monospace}
+  .summary{display:flex;gap:10px;margin-bottom:12px}
+  .sum-box{flex:1;text-align:center;border-radius:8px;padding:10px}
+  .sum-num{font-size:22px;font-weight:700}.sum-lbl{font-size:10px;margin-top:3px}
+  table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:12px}
+  th{background:${col};color:#fff;padding:8px 10px;text-align:right;font-weight:700}
+  td{border-bottom:1px solid #e8ecf0;padding:7px 10px;text-align:right}
+  tr:nth-child(even)td{background:#f9fafb}
+  .ok{color:#1a7a4a;font-weight:700}.nok{color:#c0392b;font-weight:700}
+  .notes{background:#fff3e0;border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;line-height:1.7}
+  .sig-section{margin-top:24px;border-top:2px solid ${col};padding-top:14px}
+  .sig-title{font-size:11px;font-weight:700;color:${col};text-transform:uppercase;letter-spacing:.08em;text-align:center;margin-bottom:12px}
+  .sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .sig-box{text-align:center}.sig-name{font-size:11px;font-weight:700;color:${col};margin-bottom:2px}
+  .sig-line{border-top:1.5px solid ${col};margin-top:36px;padding-top:4px;font-size:9px;color:#aaa}
+  .footer{margin-top:14px;border-top:1px solid #e8ecf0;padding-top:8px;font-size:10px;color:#aaa;display:flex;justify-content:space-between}
+  @media print{.no-print{display:none!important}body{padding:15px}}
+  </style></head><body>
+  <div class="no-print">
+    <button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>
+    <button class="btn-pr"  onclick="window.print()">🖨️ Print</button>
+    <div class="info-tip">💡 To save as PDF: press the button above → choose <b>"Save as PDF"</b> from the printer dialog</div>
+  </div>
+  <div class="hbar">
+    <div style="font-size:32px">💨</div>
+    <div class="hcenter">
+      <h1>EX FAN Preventive Maintenance Report</h1>
+      <p>AL MAJAL AL ARABI GROUP — King Faisal Medical Complex</p>
+      <p style="color:${col};font-weight:600;margin-top:2px">${LVL_EN[rec.lvl]} Inspection — ${rec.unit.name} — ${rec.date}</p>
+    </div>
+    <div style="font-size:32px">🏥</div>
+  </div>
+  <div class="path-bar">📁 EX Fans PPM › ${rec.unit.folderName} › 📂 ${rec.unit.subName} › 💨 ${rec.unit.name}</div>
+  <div class="meta-grid">
+    <div class="meta-box"><div class="meta-lbl">💨 EX FAN Unit</div><div class="meta-val">${rec.unit.name}</div></div>
+    <div class="meta-box"><div class="meta-lbl">📁 Building / Zone</div><div class="meta-val">${rec.unit.subName}</div></div>
+    <div class="meta-box"><div class="meta-lbl">📅 Date</div><div class="meta-val">${rec.date}</div></div>
+    <div class="meta-box"><div class="meta-lbl">👷 Technician</div><div class="meta-val">${rec.tech}</div></div>
+  </div>
+  <div class="summary">
+    <div class="sum-box" style="background:#e8f8f0"><div class="sum-num" style="color:#1a7a4a">${rec.doneT}</div><div class="sum-lbl" style="color:#1a7a4a">Completed</div></div>
+    <div class="sum-box" style="background:#fef0f0"><div class="sum-num" style="color:#c0392b">${rec.notDoneT}</div><div class="sum-lbl" style="color:#c0392b">Follow-up</div></div>
+    <div class="sum-box" style="background:${col}15"><div class="sum-num" style="color:${col}">${rec.doneT+rec.notDoneT}</div><div class="sum-lbl" style="color:${col}">Total</div></div>
+  </div>
+  <table><tr><th>Maintenance Item</th><th>Description</th><th>Result</th></tr>
+  ${checks.map(c=>{const v=rec.data[c.id];const res=v===true?'<span class="ok">&#10003; Done</span>':v===false?'<span class="nok">&#10007; Not Done</span>':'<span style="color:#aaa">—</span>';return`<tr><td><b>${c.lbl}</b></td><td style="color:${col};font-weight:700;font-size:12px">${c.sub}</td><td>${res}</td></tr>`;}).join('')}</table>
+  ${rec.data&&rec.data.notes?`<div class="notes"><b>📝 Notes:</b><br><br>${rec.data.notes}</div>`:''}
+  ${rec.photos&&rec.photos.length?`<div style="margin-top:12px"><div style="font-size:13px;font-weight:600;color:${col};margin-bottom:8px;padding:8px;background:${col}15;border-radius:6px">📷 Verification Photos (${rec.photos.length})</div><div style="display:flex;flex-wrap:wrap;gap:8px">${rec.photos.map((p,i)=>`<div style="text-align:center"><img src="${p.data}" style="width:140px;height:140px;object-fit:cover;border-radius:8px;border:1px solid #ddd"><div style="font-size:10px;color:#888;margin-top:3px">Photo ${i+1}</div></div>`).join('')}</div></div>`:''}
+  <div class="sig-section">
+    <div class="sig-title">Authorized Signatures</div>
+    <div class="sig-grid">
+      <div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Sign</div></div>
+      <div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Sign</div></div>
+      <div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Sign</div></div>
+    </div>
+  </div>
+  <div class="footer"><span>EX Fans PPM System — Auto-generated</span><span>King Faisal Medical Complex | ${new Date().toLocaleDateString('ar-SA')}</span></div>
+  </body></html>`);
+  w.document.close();
 }
 function clipCopy(txt){
   if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert('✅ Report copied!'));
