@@ -8,8 +8,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HVAC Maintenance">
 <title>HVAC Maintenance — King Faisal</title>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase loaded dynamically -->
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;font-size:14px}
@@ -303,7 +302,6 @@ body{background:#f0f2f5;color:#0d1b2a}
 
 <script>
 window.onerror=function(msg,src,line,col,err){
-  document.getElementById('units-list').innerHTML='<div style="padding:20px;color:red;font-size:12px">Error: '+msg+' (line '+line+')</div>';
   console.error('JS Error:',msg,src,line,col,err);
   return false;
 };
@@ -448,14 +446,7 @@ var firebaseConfig={
   messagingSenderId:"429823910983",
   appId:"1:429823910983:web:1836576203d10cbc9c3d62"
 };
-firebase.initializeApp(firebaseConfig);
-var db;
-try {
-  db = firebase.firestore();
-} catch(e) {
-  console.warn('Firestore init failed:', e);
-  db = null;
-}
+var db = null; // Will be set by loadFirebase()
 var COL='hvac_records';
 
 //---
@@ -528,17 +519,19 @@ function renderUnits(filter){
     var units=z.units.filter(function(uid){
       if(!q) return true;
       var u=ALL_UNITS[uid];
-      return u.name.toLowerCase().includes(q)||z.name.includes(q)||z.en.toLowerCase().includes(q);
+      if(!u) return false;
+      return (u.name||'').toLowerCase().includes(q)||z.name.includes(q)||(z.en||'').toLowerCase().includes(q);
     });
     if(!units.length) return;
     html+='<div class="zone-hdr">'+z.name+' <span style="font-size:9px;font-weight:400;opacity:.6">'+z.en+'</span><span class="zone-cnt">'+units.length+' وحدة</span></div>';
     units.forEach(function(uid){
       var u=ALL_UNITS[uid];
+      if(!u) return;
       var lr=records.find(function(r){return r.unitId===uid;});
       html+='<div class="ucard" onclick="pickUnit(\''+uid+'\')">'+
-        '<div class="urow"><span class="uname">'+u.name+'</span>'+
+        '<div class="urow"><span class="uname">'+(u.name||uid)+'</span>'+
         '<span class="bdg '+(lr?'b-ok':'b-due')+'">'+(lr?'✓ Done':'⏳ Due')+'</span></div>'+
-        '<div class="umeta">📍 '+u.zoneName+(lr?' | آخر صيانة: '+lr.date:'')+'</div></div>';
+        '<div class="umeta">📍 '+(u.zoneName||'')+(lr?' | آخر صيانة: '+lr.date:'')+'</div></div>';
     });
   });
   if(!html) html='<div class="empty"><div class="empty-icon">🔍</div><div>لا توجد نتائج</div></div>';
@@ -1216,19 +1209,44 @@ function go(tab){
 //---
 // INIT
 //---
+function loadFirebase(cb){
+  if(typeof firebase !== 'undefined' && firebase.firestore){
+    cb(); return;
+  }
+  var s1=document.createElement('script');
+  s1.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+  s1.onload=function(){
+    var s2=document.createElement('script');
+    s2.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+    s2.onload=function(){
+      try{
+        firebase.initializeApp(firebaseConfig);
+        db=firebase.firestore();
+      }catch(e){ console.warn('Firebase init failed:',e); db=null; }
+      cb();
+    };
+    s2.onerror=function(){ db=null; cb(); };
+    document.head.appendChild(s2);
+  };
+  s1.onerror=function(){ db=null; cb(); };
+  document.head.appendChild(s1);
+}
+
 function init(){
-  // Always render units immediately from local data
+  // Always render units immediately from local data - NO Firebase needed
   try{ renderUnits(); }catch(e){ console.error('renderUnits error:',e); }
   try{ renderRecs(); }catch(e){ console.error('renderRecs error:',e); }
-  // Try Firebase in background - don't block UI
+  // Load Firebase in background after UI is shown
   setTimeout(function(){
-    try{
-      startRealtimeListener();
-    }catch(e){
-      console.warn('Firebase unavailable, running offline:',e);
-      updateOnlineStatus(false);
-    }
-  }, 300);
+    loadFirebase(function(){
+      try{
+        startRealtimeListener();
+      }catch(e){
+        console.warn('Firebase unavailable, running offline:',e);
+        updateOnlineStatus(false);
+      }
+    });
+  }, 500);
   // Handle URL unit param
   try{
     var p=new URLSearchParams(window.location.search);
