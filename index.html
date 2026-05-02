@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>CMMS — King Faisal Medical Complex</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{min-height:100%;font-family:'Poppins',Arial,sans-serif}
@@ -46,28 +47,73 @@ body{
   background:linear-gradient(145deg,#ffffff,#f0f4f9);
   border-radius:18px;padding:24px 18px 20px;text-align:center;
   cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.2);
-  transition:transform .2s,box-shadow .2s;
+  transition:transform .2s,box-shadow .2s,border-color .2s;
   border:2px solid transparent;position:relative;overflow:hidden;
   text-decoration:none;display:block;
 }
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
   background:linear-gradient(90deg,#0a2e5c,#00b4d8)}
 .card:hover,.card:active{
-  transform:translateY(-5px) scale(1.01);
+  transform:translateY(-8px) scale(1.02);
   box-shadow:0 18px 50px rgba(0,0,0,.3);border-color:#00b4d8}
 
-.card-icon{font-size:50px;margin-bottom:12px;display:block;line-height:1}
+/* Professional Icon Container */
+.card-icon-container{
+  width:80px;height:80px;margin:0 auto 16px;
+  display:flex;align-items:center;justify-content:center;
+  border-radius:16px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#f5f7fa,#e8ecf1);
+  box-shadow:0 4px 16px rgba(10,46,92,.1);
+  transition:all .3s ease;
+}
+
+.card:hover .card-icon-container{
+  transform:scale(1.1);
+  box-shadow:0 8px 24px rgba(10,46,92,.2);
+}
+
+.card-icon-container.building{
+  background:linear-gradient(135deg,#e3f2fd,#bbdefb);
+}
+
+.card-icon-container.tower{
+  background:linear-gradient(135deg,#f3e5f5,#e1bee7);
+}
+
+.card-icon-container.package{
+  background:linear-gradient(135deg,#e0f2f1,#b2dfdb);
+}
+
+.card-icon-container.exhaust{
+  background:linear-gradient(135deg,#fff3e0,#ffe0b2);
+}
+
+.card-icon{
+  font-size:40px;width:100%;height:100%;
+  display:flex;align-items:center;justify-content:center;
+  color:#0a2e5c;
+  transition:transform .3s ease;
+}
+
+.card:hover .card-icon{
+  transform:scale(1.15) rotate(-5deg);
+}
+
 .card-title{font-size:14px;font-weight:900;color:#0a2e5c;margin-bottom:5px;
   text-transform:uppercase;letter-spacing:.02em;-webkit-text-stroke:.3px #0a2e5c}
 .card-sub{font-size:10px;color:#8a94a6;font-weight:700;margin-bottom:14px;line-height:1.6}
 .card-badge{display:inline-flex;align-items:center;gap:4px;
   background:#EBF4FF;color:#0a2e5c;font-size:9px;font-weight:900;
-  padding:3px 10px;border-radius:20px;margin-bottom:14px;letter-spacing:.03em}
+  padding:5px 12px;border-radius:20px;margin-bottom:14px;letter-spacing:.03em}
 .card-btn{display:block;width:100%;padding:10px;
   background:linear-gradient(135deg,#0a2e5c,#1a5fae);
   color:#fff;border-radius:10px;font-size:12px;font-weight:900;
-  letter-spacing:.03em;border:none;transition:opacity .15s;cursor:pointer}
-.card:hover .card-btn{opacity:.9}
+  letter-spacing:.03em;border:none;transition:all .15s;cursor:pointer}
+.card:hover .card-btn{
+  opacity:.95;
+  transform:translateX(4px);
+  box-shadow:0 4px 12px rgba(10,46,92,.3);
+}
 
 /* Footer */
 .footer{margin-top:22px;text-align:center;font-size:10px;
@@ -78,16 +124,17 @@ body{
 .back-btn{margin-bottom:12px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
   background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
   color:#fff;padding:8px 16px;border-radius:10px;font-weight:800;
-  font-size:12px;font-family:inherit;letter-spacing:.02em;backdrop-filter:blur(6px)}
-.back-btn:hover{background:rgba(255,255,255,.25)}
+  font-size:12px;font-family:inherit;letter-spacing:.02em;backdrop-filter:blur(6px);
+  transition:all .2s}
+.back-btn:hover{background:rgba(255,255,255,.25);transform:translateX(-4px)}
 iframe{width:100%;height:88vh;border:none;border-radius:14px;
   background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.3)}
 
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-.card:nth-child(1) .card-icon{animation:float 3s ease-in-out infinite}
-.card:nth-child(2) .card-icon{animation:float 3s ease-in-out infinite .4s}
-.card:nth-child(3) .card-icon{animation:float 3s ease-in-out infinite .8s}
-.card:nth-child(4) .card-icon{animation:float 3s ease-in-out infinite 1.2s}
+.card:nth-child(1) .card-icon-container{animation:float 3s ease-in-out infinite}
+.card:nth-child(2) .card-icon-container{animation:float 3s ease-in-out infinite .4s}
+.card:nth-child(3) .card-icon-container{animation:float 3s ease-in-out infinite .8s}
+.card:nth-child(4) .card-icon-container{animation:float 3s ease-in-out infinite 1.2s}
 
 @media(max-width:520px){
   .cards{grid-template-columns:1fr 1fr}
@@ -116,7 +163,9 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 
     <!-- AHU Main Building -->
     <div class="card" onclick="openSystem('main.html')">
-      <span class="card-icon">🏢</span>
+      <div class="card-icon-container building">
+        <div class="card-icon"><i class="fas fa-building"></i></div>
+      </div>
       <div class="card-title">Main Building</div>
       <div class="card-sub">AHU / FAHU Units<br>All Floors</div>
       <div class="card-badge">❄️ HVAC PPM</div>
@@ -125,7 +174,9 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 
     <!-- Medical Tower -->
     <div class="card" onclick="openSystem('tower.html')">
-      <span class="card-icon">🏗️</span>
+      <div class="card-icon-container tower">
+        <div class="card-icon"><i class="fas fa-gopuram"></i></div>
+      </div>
       <div class="card-title">Medical Tower</div>
       <div class="card-sub">AHU / FAHU Units<br>Tower Floors</div>
       <div class="card-badge">❄️ HVAC PPM</div>
@@ -134,7 +185,9 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 
     <!-- Package Units -->
     <div class="card" onclick="openSystem('package_opd.html')">
-      <span class="card-icon">📦</span>
+      <div class="card-icon-container package">
+        <div class="card-icon"><i class="fas fa-cube"></i></div>
+      </div>
       <div class="card-title">Package Units</div>
       <div class="card-sub">OPD Package Units<br>Preventive Maintenance</div>
       <div class="card-badge">🔧 PPM</div>
@@ -143,7 +196,9 @@ iframe{width:100%;height:88vh;border:none;border-radius:14px;
 
     <!-- Exhaust Fans -->
     <div class="card" onclick="openSystem('exhaust_fans.html')">
-      <span class="card-icon">🌀</span>
+      <div class="card-icon-container exhaust">
+        <div class="card-icon"><i class="fas fa-fan"></i></div>
+      </div>
       <div class="card-title">Exhaust Fans</div>
       <div class="card-sub">All Zones — S.B.1 to Zone 9<br>Preventive Maintenance</div>
       <div class="card-badge">💨 EX Fans PPM</div>
