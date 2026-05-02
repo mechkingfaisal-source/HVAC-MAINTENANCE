@@ -832,9 +832,11 @@ function zsRenderTable(){
     checks.map(function(c){
       return '<th style="min-width:58px"><div>'+c.lbl+'</div><div style="font-size:8px;opacity:.65;font-weight:400;margin-top:1px">'+c.sub+'</div>'+(c.unit?'<div style="font-size:8px;opacity:.65">('+c.unit+')</div>':'')+'</th>';
     }).join('')+
+    '<th style="min-width:120px;background:#1a3d6e">📝 Remarks</th>'+
   '</tr></thead>';
 
   var tbody = '<tbody>'+units.map(function(u){
+    var remarksVal = (zsData[u.id]&&zsData[u.id]._remarks)||'';
     return '<tr>'+
       '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+u.zoneName.split('(')[0].trim()+'</div></td>'+
       checks.map(function(c){
@@ -847,6 +849,7 @@ function zsRenderTable(){
         var lbl = v===true?'✓':v===false?'✗':'—';
         return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+'\',\''+c.id+'\',this)">'+lbl+'</button></td>';
       }).join('')+
+      '<td><input style="width:110px;border:1.5px solid #d1d8e0;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+'\',this.value)"></td>'+
     '</tr>';
   }).join('')+'</tbody>';
 
@@ -865,6 +868,11 @@ function zsTog(uid, cid, btn){
 function zsSetNum(uid, cid, val){
   if(!zsData[uid]) zsData[uid]={};
   zsData[uid][cid] = val;
+}
+
+function zsSetRemarks(uid, val){
+  if(!zsData[uid]) zsData[uid]={};
+  zsData[uid]._remarks = val;
 }
 
 function zsCheckAll(){
@@ -943,7 +951,7 @@ function zsOpenPrint(){
 
   var thCells = checks.map(function(c){
     return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
-  }).join('');
+  }).join('')+'<th style="min-width:100px">📝 Remarks</th>';
 
   var rows = units.map(function(u, ri){
     var data = zsData[u.id] || {};
@@ -958,11 +966,13 @@ function zsOpenPrint(){
       var v = data[c.id];
       return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
     }).join('');
+    var remarks = data._remarks||'';
     return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'+
       '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'+
       cells+
       '<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'+
       '<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'+
+      '<td style="font-size:10px;color:#4a5568;text-align:left;padding:4px 6px">'+remarks+'</td>'+
     '</tr>';
   }).join('');
 
