@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.googleapis.com https://*.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.firebaseapp.com wss://*.firebaseio.com data: blob:;">
 <meta name="theme-color" content="#0a2e5c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="HVAC Maintenance">
 <title>HVAC Maintenance — King Faisal</title>
-<!-- Firebase loaded dynamically -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif;font-size:14px}
@@ -137,36 +137,6 @@ body{background:#f0f2f5;color:#0d1b2a}
 .cam-count{font-size:10px;color:#1a7a4a;font-weight:700;background:#e8f8f0;padding:2px 8px;border-radius:20px;display:inline-flex;align-items:center;gap:3px}
 .cam-verify{background:#e8f8f0;border:.5px solid #a3d9be;border-radius:8px;padding:6px 10px;font-size:10px;color:#1a7a4a;font-weight:700;display:flex;align-items:center;gap:5px;margin-top:6px}
 /* Signature Modal */
-/* ── Zone Log Sheet ── */
-.zs-zone-btns{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
-.zs-zbtn{padding:5px 10px;border-radius:7px;border:1.5px solid #d1d8e0;background:#fff;font-size:11px;font-weight:700;color:#0a2e5c;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s}
-.zs-zbtn.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c}
-.zs-meta{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:10px}
-.zs-input{width:100%;border:1.5px solid #d1d8e0;border-radius:8px;padding:7px 10px;font-size:12px;font-family:Arial,sans-serif;color:#0a2e5c;background:#fff;outline:none}
-.zs-lvl-tabs{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
-.zs-lvl-tabs::-webkit-scrollbar{display:none}
-.zs-ltab{padding:6px 11px;border-radius:8px;border:1.5px solid #d1d8e0;background:#fff;font-size:10px;font-weight:700;color:#4a5568;cursor:pointer;white-space:nowrap;font-family:Arial,sans-serif;transition:all .18s}
-.zs-ltab.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c}
-.zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px}
-.zs-table{width:100%;border-collapse:collapse;font-size:11px;min-width:500px}
-.zs-table th{background:#0a2e5c;color:#fff;padding:7px 6px;text-align:center;font-size:10px;font-weight:700;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap}
-.zs-table th:first-child{text-align:right;min-width:100px;position:sticky;right:0;background:#0a2e5c;z-index:2}
-.zs-table td{border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:5px 4px;text-align:center;vertical-align:middle}
-.zs-table td:first-child{text-align:right;padding:5px 8px;font-weight:700;font-size:10px;color:#0a2e5c;background:#f4f7fb;position:sticky;right:0;z-index:1;min-width:100px;border-right:2px solid #d1d8e0}
-.zs-table tr:nth-child(even) td{background:#f9fafb}
-.zs-table tr:nth-child(even) td:first-child{background:#eef3fa}
-.zs-tog{width:30px;height:22px;border-radius:5px;border:1.5px solid #d1d8e0;background:#fff;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;font-family:Arial,sans-serif;padding:0}
-.zs-tog.yes{background:#e8f8f0;border-color:#1a7a4a;color:#1a7a4a}
-.zs-tog.no{background:#fef0f0;border-color:#c0392b;color:#c0392b}
-.zs-num{width:46px;border:1.5px solid #d1d8e0;border-radius:5px;padding:3px 4px;font-size:11px;text-align:center;font-family:Arial,sans-serif;color:#0a2e5c}
-.zs-actions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
-.zs-btn{flex:1;min-width:100px;padding:10px;border-radius:9px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s}
-.zs-btn.save{background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff}
-.zs-btn.print{background:#0a2e5c;color:#fff}
-.zs-btn.fill{background:#fff;color:#0a2e5c;border:1.5px solid #0a2e5c}
-.zs-legend{display:flex;gap:8px;font-size:10px;color:#8a94a6;align-items:center;margin-bottom:8px;flex-wrap:wrap}
-.zs-legend span{display:flex;align-items:center;gap:3px}
-/* ── end Zone Sheet ── */
 .sig-modal-bg{position:fixed;inset:0;background:rgba(10,46,92,.6);display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px}
 .sig-modal{background:#fff;border-radius:14px;padding:18px;width:100%;max-width:500px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .sig-modal-title{font-size:14px;font-weight:700;color:#0a2e5c;margin-bottom:4px;text-align:center}
@@ -197,14 +167,13 @@ body{background:#f0f2f5;color:#0d1b2a}
       <h1>HVAC Preventive Maintenance</h1>
       <p id="hdrsub">AL MAJAL — King Faisal Medical Complex</p>
     </div>
-    <div class="offl"><div class="offl-dot"></div>Connecting...</div>
+    <div class="offl"><div class="offl-dot"></div>Offline</div>
   </div>
   <div class="tabs">
     <div class="tab active" onclick="go('units')"><span class="tab-icon">🏢</span>Units</div>
     <div class="tab" onclick="go('form')"><span class="tab-icon">📋</span>Form</div>
-    <div class="tab" onclick="go('zonesheet')"><span class="tab-icon">📊</span>Zone Sheet</div>
     <div class="tab" onclick="go('records')"><span class="tab-icon">📁</span>Records</div>
-    <div class="tab" onclick="go('qr')"><span class="tab-icon">📲</span>QR Codes</div>
+    <div class="tab" onclick="go('qr')"><span class="tab-icon">⬛</span>QR Codes</div>
   </div>
   <div class="pages">
 
@@ -214,48 +183,13 @@ body{background:#f0f2f5;color:#0d1b2a}
         <span style="font-size:14px;color:#8a94a6">🔍</span>
         <input id="search-input" placeholder="ابحث عن وحدة..." oninput="filterUnits(this.value)">
       </div>
-      <div id="units-list"><div class="empty"><div class="empty-icon">⏳</div><div>جاري التحميل...</div></div></div>
+      <div id="units-list"></div>
     </div>
 
     <!-- FORM -->
     <div class="pg" id="pg-form">
       <div id="form-wrap">
         <div class="empty"><div class="empty-icon">👈</div><div>Select a unit from the Units tab</div></div>
-      </div>
-    </div>
-
-
-    <!-- ZONE SHEET -->
-    <div class="pg" id="pg-zonesheet">
-      <div class="info">📊 سجل صيانة الزون — أدخل بيانات جميع الوحدات دفعة واحدة</div>
-      <div class="zs-meta">
-        <div>
-          <div style="font-size:10px;font-weight:600;color:#8a94a6;margin-bottom:3px;text-transform:uppercase">👷 الفني</div>
-          <input class="zs-input" id="zs-tech" placeholder="اسم الفني...">
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:600;color:#8a94a6;margin-bottom:3px;text-transform:uppercase">📅 التاريخ</div>
-          <input class="zs-input" id="zs-date" type="date">
-        </div>
-      </div>
-      <div style="font-size:10px;font-weight:600;color:#8a94a6;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">🗂️ اختر الزون</div>
-      <div class="zs-zone-btns" id="zs-zone-btns"></div>
-      <div style="font-size:10px;font-weight:600;color:#8a94a6;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">⚙️ مستوى الصيانة</div>
-      <div class="zs-lvl-tabs" id="zs-lvl-tabs"></div>
-      <div class="zs-legend">
-        <span>اضغط على الخلية للتبديل:</span>
-        <span><button class="zs-tog yes" style="cursor:default">✓</button> تم</span>
-        <span><button class="zs-tog no" style="cursor:default">✗</button> لم يتم</span>
-        <span><button class="zs-tog" style="cursor:default">—</button> لم يُحدد</span>
-      </div>
-      <div class="zs-actions">
-        <button class="zs-btn fill" onclick="zsCheckAll()">✓ تحديد الكل</button>
-        <button class="zs-btn fill" onclick="zsClearAll()">↺ مسح الكل</button>
-        <button class="zs-btn print" onclick="zsOpenPrint()">🖨️ طباعة</button>
-        <button class="zs-btn save" onclick="zsSaveAll()">💾 حفظ الكل</button>
-      </div>
-      <div class="zs-table-wrap">
-        <table class="zs-table" id="zs-table"></table>
       </div>
     </div>
 
@@ -302,6 +236,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 
 <script>
 window.onerror=function(msg,src,line,col,err){
+  document.getElementById('units-list').innerHTML='<div style="padding:20px;color:red;font-size:12px">Error: '+msg+' (line '+line+')</div>';
   console.error('JS Error:',msg,src,line,col,err);
   return false;
 };
@@ -446,7 +381,8 @@ var firebaseConfig={
   messagingSenderId:"429823910983",
   appId:"1:429823910983:web:1836576203d10cbc9c3d62"
 };
-var db = null; // Will be set by loadFirebase()
+firebase.initializeApp(firebaseConfig);
+var db=firebase.firestore();
 var COL='hvac_records';
 
 //---
@@ -460,39 +396,26 @@ var SITE_URL=(function(){return window.location.href.split('?')[0].replace(/\/+$
 
 // Real-time listener — يحدث السجلات فوراً عند أي تغيير من أي فني
 function startRealtimeListener(){
-  if(!db||typeof db.collection!=='function'){
-    fbConnected=false;
-    updateOnlineStatus(false);
-    try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
-    renderRecs();renderUnits();
-    return;
-  }
-  try{
-    db.collection(COL).orderBy('ts','desc').limit(500)
-      .onSnapshot(function(snap){
-        fbConnected=true;
-        updateOnlineStatus(true);
-        records=[];
-        snap.forEach(function(doc){
-          var d=doc.data();
-          d._fbId=doc.id;
-          records.push(d);
-        });
-        renderRecs();
-        renderUnits();
-      },function(err){
-        fbConnected=false;
-        updateOnlineStatus(false);
-        console.warn('Firebase offline, using localStorage',err);
-        try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
-        renderRecs();renderUnits();
+  db.collection(COL).orderBy('ts','desc').limit(500)
+    .onSnapshot(function(snap){
+      fbConnected=true;
+      updateOnlineStatus(true);
+      records=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        d._fbId=doc.id;
+        // strip heavy photos from memory list (keep for display but not duplicate)
+        records.push(d);
       });
-  }catch(e){
-    fbConnected=false;
-    updateOnlineStatus(false);
-    try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e2){}
-    renderRecs();renderUnits();
-  }
+      renderRecs();
+      renderUnits();
+    },function(err){
+      fbConnected=false;
+      updateOnlineStatus(false);
+      console.warn('Firebase offline, using localStorage',err);
+      try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
+      renderRecs();renderUnits();
+    });
 }
 
 function updateOnlineStatus(online){
@@ -519,19 +442,17 @@ function renderUnits(filter){
     var units=z.units.filter(function(uid){
       if(!q) return true;
       var u=ALL_UNITS[uid];
-      if(!u) return false;
-      return (u.name||'').toLowerCase().includes(q)||z.name.includes(q)||(z.en||'').toLowerCase().includes(q);
+      return u.name.toLowerCase().includes(q)||z.name.includes(q)||z.en.toLowerCase().includes(q);
     });
     if(!units.length) return;
     html+='<div class="zone-hdr">'+z.name+' <span style="font-size:9px;font-weight:400;opacity:.6">'+z.en+'</span><span class="zone-cnt">'+units.length+' وحدة</span></div>';
     units.forEach(function(uid){
       var u=ALL_UNITS[uid];
-      if(!u) return;
       var lr=records.find(function(r){return r.unitId===uid;});
       html+='<div class="ucard" onclick="pickUnit(\''+uid+'\')">'+
-        '<div class="urow"><span class="uname">'+(u.name||uid)+'</span>'+
+        '<div class="urow"><span class="uname">'+u.name+'</span>'+
         '<span class="bdg '+(lr?'b-ok':'b-due')+'">'+(lr?'✓ Done':'⏳ Due')+'</span></div>'+
-        '<div class="umeta">📍 '+(u.zoneName||'')+(lr?' | آخر صيانة: '+lr.date:'')+'</div></div>';
+        '<div class="umeta">📍 '+u.zoneName+(lr?' | آخر صيانة: '+lr.date:'')+'</div></div>';
     });
   });
   if(!html) html='<div class="empty"><div class="empty-icon">🔍</div><div>لا توجد نتائج</div></div>';
@@ -698,284 +619,6 @@ function showSuccess(rec,dT,nT){
     '<button class="ab" onclick="selUnit=null;fd={};renderUnits();go(\'units\')">➕ New Unit</button>'+
     '</div></div>';
   renderRecs();
-}
-
-
-//---
-// ZONE LOG SHEET
-//---
-var zsZone = null;
-var zsLvl  = 'monthly';
-var zsData = {}; // {unitId: {checkId: true/false/null/'value'}}
-
-function initZoneSheet(){
-  // Set today's date
-  var d = document.getElementById('zs-date');
-  if(d && !d.value) d.value = new Date().toISOString().slice(0,10);
-
-  // Zone buttons
-  var zb = document.getElementById('zs-zone-btns');
-  zb.innerHTML = ZONES.map(function(z){
-    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'')+'" onclick="zsSelectZone(''+z.id+'')">'+z.name+'<br><small style="font-weight:400;opacity:.7">'+z.en+'</small></button>';
-  }).join('');
-
-  // Level tabs
-  var lt = document.getElementById('zs-lvl-tabs');
-  lt.innerHTML = Object.keys(LVL).map(function(k){
-    return '<button class="zs-ltab'+(zsLvl===k?' active':'')+'" onclick="zsSelectLvl(''+k+'')">'+LVL[k]+'</button>';
-  }).join('');
-
-  if(!zsZone && ZONES.length) zsSelectZone(ZONES[0].id);
-  else zsRenderTable();
-}
-
-function zsSelectZone(zid){
-  zsZone = zid;
-  zsData = {};
-  document.querySelectorAll('.zs-zbtn').forEach(function(b,i){
-    b.classList.toggle('active', ZONES[i].id === zid);
-  });
-  zsRenderTable();
-}
-
-function zsSelectLvl(lvl){
-  zsLvl = lvl;
-  zsData = {};
-  document.querySelectorAll('.zs-ltab').forEach(function(b,i){
-    b.classList.toggle('active', Object.keys(LVL)[i] === lvl);
-  });
-  zsRenderTable();
-}
-
-function zsRenderTable(){
-  if(!zsZone) return;
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  if(!zone) return;
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var units  = zone.units.map(function(uid){ return ALL_UNITS[uid]; }).filter(Boolean);
-
-  // Init data
-  units.forEach(function(u){
-    if(!zsData[u.id]) zsData[u.id] = {};
-  });
-
-  var thead = '<thead><tr>'+
-    '<th style="min-width:110px">الوحدة</th>'+
-    checks.map(function(c){
-      return '<th style="min-width:58px"><div>'+c.lbl+'</div><div style="font-size:8px;opacity:.65;font-weight:400;margin-top:1px">'+c.sub+'</div>'+(c.unit?'<div style="font-size:8px;opacity:.65">('+c.unit+')</div>':'')+'</th>';
-    }).join('')+
-  '</tr></thead>';
-
-  var tbody = '<tbody>'+units.map(function(u){
-    return '<tr>'+
-      '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+u.zoneName.split('(')[0].trim()+'</div></td>'+
-      checks.map(function(c){
-        if(c.type === 'num'){
-          var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
-          return '<td><input class="zs-num" value="'+val+'" oninput="zsSetNum(''+u.id+'',''+c.id+'',this.value)" placeholder="—"></td>';
-        }
-        var v = zsData[u.id] ? zsData[u.id][c.id] : null;
-        var cls = v===true?'yes':v===false?'no':'';
-        var lbl = v===true?'✓':v===false?'✗':'—';
-        return '<td><button class="zs-tog '+cls+'" onclick="zsTog(''+u.id+'',''+c.id+'',this)">'+lbl+'</button></td>';
-      }).join('')+
-    '</tr>';
-  }).join('')+'</tbody>';
-
-  document.getElementById('zs-table').innerHTML = thead + tbody;
-}
-
-function zsTog(uid, cid, btn){
-  if(!zsData[uid]) zsData[uid]={};
-  var cur = zsData[uid][cid];
-  var next = cur===null||cur===undefined ? true : cur===true ? false : null;
-  zsData[uid][cid] = next;
-  btn.className = 'zs-tog '+(next===true?'yes':next===false?'no':'');
-  btn.textContent = next===true?'✓':next===false?'✗':'—';
-}
-
-function zsSetNum(uid, cid, val){
-  if(!zsData[uid]) zsData[uid]={};
-  zsData[uid][cid] = val;
-}
-
-function zsCheckAll(){
-  if(!zsZone) return;
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type==='tog'; });
-  zone.units.forEach(function(uid){
-    if(!zsData[uid]) zsData[uid]={};
-    checks.forEach(function(c){ zsData[uid][c.id] = true; });
-  });
-  zsRenderTable();
-}
-
-function zsClearAll(){
-  zsData = {};
-  zsRenderTable();
-}
-
-function zsSaveAll(){
-  if(!zsZone){ alert('اختر الزون أولاً'); return; }
-  var tech  = document.getElementById('zs-tech').value.trim();
-  var date  = document.getElementById('zs-date').value;
-  if(!tech){ alert('أدخل اسم الفني'); return; }
-  if(!date){ alert('اختر التاريخ'); return; }
-
-  var zone   = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var saved  = 0;
-
-  zone.units.forEach(function(uid){
-    var u = ALL_UNITS[uid];
-    if(!u) return;
-    var data = zsData[uid] || {};
-    var togs = checks.filter(function(c){ return c.type === 'tog'; });
-    var doneT    = togs.filter(function(c){ return data[c.id]===true; }).length;
-    var notDoneT = togs.filter(function(c){ return data[c.id]===false; }).length;
-    var rec = {
-      unitId: u.id,
-      unit:   JSON.parse(JSON.stringify(u)),
-      lvl:    zsLvl,
-      date:   date,
-      tech:   tech,
-      doneT:  doneT,
-      notDoneT: notDoneT,
-      data:   JSON.parse(JSON.stringify(data)),
-      _fromZoneSheet: true
-    };
-    // Save to Firebase if connected
-    if(fbConnected && db){
-      db.collection(COL).add(rec).then(function(docRef){
-        rec._fbId = docRef.id;
-      }).catch(function(){});
-    }
-    records.unshift(rec);
-    saved++;
-  });
-
-  try{ localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500))); }catch(e){}
-  renderRecs();
-
-  // Show confirmation
-  var msg = '✅ تم حفظ '+saved+' وحدة بنجاح!\n'+zone.name+' | '+LVL_EN[zsLvl]+' | '+date;
-  if(confirm(msg+'\n\nهل تريد طباعة سجل الزون؟')) zsOpenPrint();
-}
-
-function zsOpenPrint(){
-  if(!zsZone){ alert('اختر الزون أولاً'); return; }
-  var tech  = document.getElementById('zs-tech').value.trim() || '—';
-  var date  = document.getElementById('zs-date').value || new Date().toISOString().slice(0,10);
-  var zone  = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var units  = zone.units.map(function(uid){ return ALL_UNITS[uid]; }).filter(Boolean);
-
-  var w = window.open('','_blank');
-  if(!w){ alert('فعّل النوافذ المنبثقة'); return; }
-
-  var thCells = checks.map(function(c){
-    return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
-  }).join('');
-
-  var rows = units.map(function(u, ri){
-    var data = zsData[u.id] || {};
-    var togs = checks.filter(function(c){ return c.type==='tog'; });
-    var done = togs.filter(function(c){ return data[c.id]===true; }).length;
-    var nd   = togs.filter(function(c){ return data[c.id]===false; }).length;
-    var cells = checks.map(function(c){
-      if(c.type==='num'){
-        var v = data[c.id]||'';
-        return '<td style="font-weight:700">'+(v||'—')+'</td>';
-      }
-      var v = data[c.id];
-      return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
-    }).join('');
-    return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'+
-      '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'+
-      cells+
-      '<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'+
-      '<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'+
-    '</tr>';
-  }).join('');
-
-  w.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8">'+
-    '<title>Zone Sheet - '+zone.name+'</title>'+
-    '<style>'+
-    '*{box-sizing:border-box;margin:0;padding:0}'+
-    'body{font-family:Arial,sans-serif;font-size:11px;direction:rtl;padding:14px;color:#111}'+
-    '.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}'+
-    '.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
-    '.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
-    '.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}'+
-    '.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'+
-    '.hdr-title{font-size:14px;font-weight:800}'+
-    '.hdr-sub{font-size:9px;opacity:.7;margin-top:2px}'+
-    '.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'+
-    '.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}'+
-    '.meta-cell:last-child{border-right:none}'+
-    '.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'+
-    '.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}'+
-    'table{width:100%;border-collapse:collapse;font-size:10px}'+
-    'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3}'+
-    'th:first-child{text-align:right;min-width:80px}'+
-    'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'+
-    'td:first-child{text-align:right}'+
-    '.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'+
-    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'+
-    '.sig-box{text-align:center}'+
-    '.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'+
-    '.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'+
-    '.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'+
-    '.stats-row{display:flex;gap:8px;margin-bottom:10px}'+
-    '.stat-box{flex:1;text-align:center;background:#f4f7fb;border-radius:7px;padding:7px}'+
-    '.stat-n{font-size:18px;font-weight:800;color:#0a2e5c}'+
-    '.stat-l{font-size:9px;color:#8a94a6;margin-top:2px}'+
-    '@media print{.no-print{display:none!important}body{padding:8px}}'+
-    '</style></head><body>'+
-    '<div class="no-print">'+
-      '<button class="btn-pdf" onclick="window.print()">📤 حفظ كـ PDF</button>'+
-      '<button class="btn-pr" onclick="window.print()">🖨️ طباعة</button>'+
-      '<div class="tip">💡 لحفظ كـ PDF: اضغط الزر ← اختر <b>«Save as PDF»</b> من الطابعة. يُنصح بـ <b>Landscape</b></div>'+
-    '</div>'+
-    '<div class="main-hdr">'+
-      '<div>'+
-        '<div class="hdr-title">❄️ HVAC Preventive Maintenance — Zone Log Sheet</div>'+
-        '<div class="hdr-sub">AL MAJAL AL ARABI GROUP | King Faisal Medical Complex</div>'+
-      '</div>'+
-      '<div style="text-align:left">'+
-        '<div style="font-size:13px;font-weight:800">'+zone.name+'</div>'+
-        '<div style="font-size:9px;opacity:.7">'+zone.en+'</div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="meta-bar">'+
-      '<div class="meta-cell"><div class="meta-lbl">🗂️ الزون</div><div class="meta-val">'+zone.name+' — '+zone.en+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">⚙️ مستوى الصيانة</div><div class="meta-val">'+LVL_EN[zsLvl]+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">📅 التاريخ</div><div class="meta-val">'+date+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">👷 الفني</div><div class="meta-val">'+tech+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">🏢 عدد الوحدات</div><div class="meta-val">'+units.length+'</div></div>'+
-    '</div>'+
-    '<table>'+
-      '<thead><tr>'+
-        '<th>الوحدة</th>'+thCells+
-        '<th style="background:#1a7a4a">✓ مكتمل</th>'+
-        '<th style="background:#c0392b">✗ متابعة</th>'+
-      '</tr></thead>'+
-      '<tbody>'+rows+'</tbody>'+
-    '</table>'+
-    '<div class="sig-section">'+
-      '<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'+
-      '<div class="sig-grid">'+
-        '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="footer">'+
-      '<span>HVAC Zone Log Sheet — Auto-generated</span>'+
-      '<span>King Faisal Medical Complex | '+new Date().toLocaleDateString('ar-SA')+'</span>'+
-    '</div>'+
-    '</body></html>');
-  w.document.close();
 }
 
 //---
@@ -1196,63 +839,30 @@ function printAllQR(){
 // NAVIGATION
 //---
 function go(tab){
-  var tabs=['units','form','zonesheet','records','qr'];
+  var tabs=['units','form','records','qr'];
   document.querySelectorAll('.tab').forEach(function(t,i){t.classList.toggle('active',tabs[i]===tab);});
   document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('active');});
   document.getElementById('pg-'+tab).classList.add('active');
   if(tab==='records')renderRecs();
   if(tab==='qr'){renderQRZoneTabs();renderQR();}
   if(tab==='form'&&selUnit)buildForm();
-  if(tab==='zonesheet')initZoneSheet();
 }
 
 //---
 // INIT
 //---
-function loadFirebase(cb){
-  if(typeof firebase !== 'undefined' && firebase.firestore){
-    cb(); return;
-  }
-  var s1=document.createElement('script');
-  s1.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
-  s1.onload=function(){
-    var s2=document.createElement('script');
-    s2.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
-    s2.onload=function(){
-      try{
-        firebase.initializeApp(firebaseConfig);
-        db=firebase.firestore();
-      }catch(e){ console.warn('Firebase init failed:',e); db=null; }
-      cb();
-    };
-    s2.onerror=function(){ db=null; cb(); };
-    document.head.appendChild(s2);
-  };
-  s1.onerror=function(){ db=null; cb(); };
-  document.head.appendChild(s1);
-}
-
 function init(){
-  // Always render units immediately from local data - NO Firebase needed
-  try{ renderUnits(); }catch(e){ console.error('renderUnits error:',e); }
-  try{ renderRecs(); }catch(e){ console.error('renderRecs error:',e); }
-  // Load Firebase in background after UI is shown
-  setTimeout(function(){
-    loadFirebase(function(){
-      try{
-        startRealtimeListener();
-      }catch(e){
-        console.warn('Firebase unavailable, running offline:',e);
-        updateOnlineStatus(false);
-      }
-    });
-  }, 500);
-  // Handle URL unit param
   try{
+    renderUnits();
+    renderRecs();
+    startRealtimeListener(); // Firebase real-time sync
     var p=new URLSearchParams(window.location.search);
     var uid=p.get('unit');
     if(uid&&ALL_UNITS[uid])setTimeout(function(){pickUnit(uid);},800);
-  }catch(e){}
+  }catch(e){
+    document.getElementById('units-list').innerHTML='<div style="padding:20px;color:red;font-size:12px">Init Error: '+e.message+'</div>';
+    console.error('Init error:',e);
+  }
 }
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded',init);
