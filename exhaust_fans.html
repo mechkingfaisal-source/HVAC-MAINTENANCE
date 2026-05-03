@@ -1201,6 +1201,9 @@ function renderQR(){
 // =====================================================
 // NAV
 // =====================================================
+var zsZone = null;
+var zsLvl  = 'daily';
+var zsData = {};
 var zsTechPerZone = {}; // {zoneId: techName}
 
 // Professional zone icons (SVG paths)
@@ -1746,13 +1749,14 @@ function printAllQR(){
 // NAVIGATION
 //---
 function go(tab){
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['units','form','records','qr'][i]===tab));
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['units','form','records','qr','zonesheet'][i]===tab));
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
   document.getElementById('pg-'+tab).classList.add('active');
   if(tab==='records') renderRecs();
   if(tab==='qr'){ renderQRNav(); }
   if(tab==='form'&&selUnit) buildForm();
   if(tab==='units') renderView();
+  if(tab==='zonesheet') initZoneSheet();
 }
 
 // PWA
