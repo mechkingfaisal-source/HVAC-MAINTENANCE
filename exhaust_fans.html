@@ -250,11 +250,11 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 .zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px}
 .zs-table{width:100%;border-collapse:collapse;font-size:11px;min-width:500px}
 .zs-table th{background:#0a2e5c;color:#fff;padding:7px 6px;text-align:center;font-size:10px;font-weight:700;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap}
-.zs-table th:first-child{text-align:right;min-width:100px;position:sticky;right:0;background:#0a2e5c;z-index:2}
+.zs-table th:first-child{text-align:left;min-width:100px;position:sticky;left:0;background:#0a2e5c;z-index:2}
 .zs-table td{border-bottom:1px solid #eef1f5;border-right:1px solid #eef1f5;padding:5px 4px;text-align:center;vertical-align:middle}
-.zs-table td:first-child{text-align:right;padding:5px 8px;font-weight:700;font-size:10px;color:#0a2e5c;background:#f4f7fb;position:sticky;right:0;z-index:1;min-width:100px;border-right:2px solid #d1d8e0}
+.zs-table td:first-child{text-align:left;padding:5px 8px;font-weight:700;font-size:10px;color:#0a2e5c;background:#f4f7fb;position:sticky;left:0;z-index:1;min-width:100px;border-right:2px solid #d1d8e0}
 .zs-table tr:nth-child(even) td{background:#f9fafb}
-.zs-table tr:nth-child(even) td:first-child{background:#eef3fa}
+.zs-table tr:nth-child(even) td:first-child{background:#e8f0fb}
 .zs-tog{width:30px;height:22px;border-radius:5px;border:1.5px solid #d1d8e0;background:#fff;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;font-family:Arial,sans-serif;padding:0}
 .zs-tog.yes{background:#e8f8f0;border-color:#1a7a4a;color:#1a7a4a}
 .zs-tog.no{background:#fef0f0;border-color:#c0392b;color:#c0392b}
@@ -366,7 +366,7 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;background:#f4f7fb;border-radius:9px;padding:8px 11px;border:.5px solid #e2e8f0">
         <span style="font-size:13px">📅</span>
         <span style="font-size:10px;font-weight:700;color:#0a2e5c;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0">Date</span>
-        <input class="zs-input" id="zs-date" type="date" style="flex:1;border:none;background:transparent;outline:none;font-size:13px;font-weight:800;color:#0a2e5c;text-align:right">
+        <input class="zs-input" id="zs-date" type="date" style="flex:1;border:none;background:transparent;outline:none;font-size:13px;font-weight:800;color:#0a2e5c">
       </div>
 
       <!-- Zone selector label -->
@@ -1204,7 +1204,7 @@ function renderQR(){
 var zsZone = null;
 var zsLvl  = 'daily';
 var zsData = {};
-var zsTechPerZone = {}; // {zoneId: techName}
+var zsTechPerZone = {};
 
 // Professional zone icons (SVG paths)
 var ZONE_ICONS = {
@@ -1307,7 +1307,7 @@ function zsRenderTable(){
   var tbody = '<tbody>'+units.map(function(u){
     var remarksVal = (zsData[u.id]&&zsData[u.id]._remarks)||'';
     return '<tr>'+
-      '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+u.zoneName.split('(')[0].trim()+'</div></td>'+
+      '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+(u.subName||u.subEn||'')+'</div></td>'+
       checks.map(function(c){
         if(c.type === 'num'){
           var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
@@ -1399,7 +1399,7 @@ function zsSaveAll(){
     saved++;
   });
 
-  try{ localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500))); }catch(e){}
+  try{ localStorage.setItem('exfan_records_v2', JSON.stringify(records.slice(0,500))); }catch(e){}
   renderRecs();
 
   // Show confirmation
@@ -1437,7 +1437,7 @@ function zsOpenPrint(){
     }).join('');
     var remarks = data._remarks||'';
     return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'+
-      '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'+
+      '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'<div style="font-size:9px;color:#888;font-weight:400">'+(u.subName||'')+'</div></td>'+
       cells+
       '<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'+
       '<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'+
