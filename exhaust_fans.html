@@ -625,7 +625,7 @@ const CHECKS = {
     {id:'notes',   lbl:'Notes',                   sub:'Remarks',                                      type:'note'},
   ],
 };
-const LVL = {daily:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>Daily', monthly:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Monthly', quarterly:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg>Quarterly', annually:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M14.7 6.3a4 4 0 105.66 5.66L21 12.66V21h-8.34l.7-.64a4 4 0 00-5.66-5.66L3 18 6 21"/><path d="M3 7l4-4 5 5"/></svg>Annually'};
+const LVL = {daily:'☀️ Daily', monthly:'🗓️ Monthly', quarterly:'📊 Quarterly', annually:'🔧 Annually'};
 const LVL_EN = {daily:'Daily', monthly:'Monthly', quarterly:'Quarterly', annually:'Annually'};
 
 // =====================================================
@@ -833,7 +833,7 @@ function buildForm() {
       <div class="pbar-lbl">Form Completion <span>${pct}%</span></div>
       <div class="pbar"><div class="pfill" style="width:${pct}%;background:linear-gradient(90deg,${col},#00b4d8)"></div></div>
     </div>
-    <div class="sctitle">Checklist — ${LVL_EN[selLvl]}</div>
+    <div class="sctitle">Checklist — ${LVL[selLvl]}</div>
     <div class="clwrap">`;
   checks.forEach(c => {
     if(c.type==='tog') {
@@ -940,7 +940,7 @@ function showSuccess(rec,doneT,notDoneT){
     <div class="succ">
       <div class="si">✅</div>
       <div class="st">Report Saved Successfully</div>
-      <div class="ss">${rec.unit.name} — ${LVL_EN[rec.lvl]}<br>${rec.date} | 👷 ${rec.tech}<br>📁 ${rec.unit.folderName} › ${rec.unit.subName}</div>
+      <div class="ss">${rec.unit.name} — ${LVL[rec.lvl]}<br>${rec.date} | 👷 ${rec.tech}<br>📁 ${rec.unit.folderName} › ${rec.unit.subName}</div>
       ${rec.photos&&rec.photos.length?`<div style="font-size:12px;color:#1a7a4a;margin-bottom:6px;text-align:center">📷 ${rec.photos.length} photo(s) attached</div>`:""}
       <div class="sstats">
         <div class="sstat"><div class="snum" style="color:#2ec27e">${doneT}</div><div class="slbl">Completed</div></div>
@@ -1528,7 +1528,7 @@ function showSuccessWithSigs(rec,signedCount){
     '<div class="succ">'
     +'<div class="si">&#10004;&#65039;</div>'
     +'<div class="st">Report Saved Successfully</div>'
-    +'<div class="ss">'+rec.unit.name+' — '+LVL_EN[rec.lvl]+'<br>'+rec.date+' | &#128119; '+rec.tech+'<br>&#128193; '+rec.unit.folderName+' › '+rec.unit.subName+'</div>'
+    +'<div class="ss">'+rec.unit.name+' — '+LVL[rec.lvl]+'<br>'+rec.date+' | &#128119; '+rec.tech+'<br>&#128193; '+rec.unit.folderName+' › '+rec.unit.subName+'</div>'
     +'<div style="text-align:center">'+sigBadge+'</div>'
     +'<div style="text-align:center">'+photosBadge+'</div>'
     +'<div class="sstats">'
@@ -1542,8 +1542,8 @@ function showSuccessWithSigs(rec,signedCount){
     +'<button class="ab-action share" onclick="shareReport(records[0])">&#128228;<br>Share PDF</button>'
     +'</div>'
     +'<button class="ab navy" style="background:'+col+'" onclick="showMod(records[0])">&#128232; Send to Supervisor</button>'
-    +'<button class="ab" onclick="go('records')">&#128193; View All Records</button>'
-    +'<button class="ab" onclick="selUnit=null;fd={};go('units')">&#10010; New Unit</button>'
+    +'<button class="ab" onclick="go(&apos;records&apos;)">&#128193; View All Records</button>'
+    +'<button class="ab" onclick="selUnit=null;fd={};go(&apos;units&apos;)">&#10010; New Unit</button>'
     +'</div></div>';
   renderRecs();
 }
@@ -1589,16 +1589,16 @@ function showSuccessWithSigs(rec,signedCount){
 
     // Replace the static sig section in the html
     html = html.replace(
-      '<div class="sig-title">Authorized Signatures</div>
-    <div class="sig-grid">
-      <div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name &amp; Sign</div></div>
-      <div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name &amp; Sign</div></div>
-      <div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name &amp; Sign</div></div>
-    </div>',
-      '<div class="sig-title">Authorized Electronic Signatures</div>
-    <div class="sig-grid">
-      '+sigHtml+'
-    </div>'
+      '<div class="sig-title">Authorized Signatures</div>' +
+      '<div class="sig-grid">' +
+      '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name &amp; Sign</div></div>' +
+      '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name &amp; Sign</div></div>' +
+      '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name &amp; Sign</div></div>' +
+      '</div>',
+      '<div class="sig-title">Authorized Electronic Signatures</div>' +
+      '<div class="sig-grid">' +
+      sigHtml +
+      '</div>'
     );
     return html;
   };
@@ -1607,19 +1607,19 @@ function showSuccessWithSigs(rec,signedCount){
 
 // ════ ZONE SHEET ════
 var ZONE_ICONS = {
-  'Z1':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">1</text></svg>',
-  'Z2':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">2</text></svg>',
-  'Z3':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">3</text></svg>',
-  'Z4':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">4</text></svg>',
-  'Z5':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">5</text></svg>',
-  'Z6':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">6</text></svg>',
-  'Z7':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">7</text></svg>',
-  'Z8':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">8</text></svg>',
-  'Z9':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">9</text></svg>',
-  'SB1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">A</text></svg>',
-  'SB2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">B</text></svg>',
-  'MT3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">M3</text></svg>',
-  'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="900" fill="currentColor" stroke="none" font-family="Arial,sans-serif">M6</text></svg>'
+  'Z1':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>',
+  'Z2':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
+  'Z3':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  'Z4':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>',
+  'Z5':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+  'Z6':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
+  'Z7':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
+  'Z8':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  'Z9':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  'SB1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8M18 14V8M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
+  'SB2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  'MT3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 10h20M2 16h20M7 2v20"/></svg>',
+  'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>'
 };
 
 // ── ZONE SHEET VARIABLES ──
@@ -1632,20 +1632,42 @@ function initZoneSheet(){
   var d = document.getElementById('zs-date');
   if(d && !d.value) d.value = new Date().toISOString().slice(0,10);
 
+  // Zone buttons — use createElement so SVG attribute quotes never break event handlers
   var zb = document.getElementById('zs-zone-btns');
-  zb.innerHTML = ZONES.map(function(z){
-    var icon = ZONE_ICONS[z.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'').replace(/'/g,"")+'" onclick="zsSelectZone(\''+z.id+'\')">'+
-      '<span class="zb-icon">'+icon+'</span>'+
-      '<span class="zb-id">'+z.id+'</span>'+
-      '<span class="zb-en">'+z.en+'</span>'+
-      '</button>';
-  }).join('');
+  zb.innerHTML = '';
+  ZONES.forEach(function(z){
+    var btn = document.createElement('button');
+    btn.className = 'zs-zbtn' + (zsZone === z.id ? ' active' : '');
 
+    var iconWrap = document.createElement('span');
+    iconWrap.className = 'zb-icon';
+    iconWrap.innerHTML = ZONE_ICONS[z.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+
+    var idSpan = document.createElement('span');
+    idSpan.className = 'zb-id';
+    idSpan.textContent = z.id;
+
+    var enSpan = document.createElement('span');
+    enSpan.className = 'zb-en';
+    enSpan.textContent = z.en;
+
+    btn.appendChild(iconWrap);
+    btn.appendChild(idSpan);
+    btn.appendChild(enSpan);
+    btn.addEventListener('click', (function(zid){ return function(){ zsSelectZone(zid); }; })(z.id));
+    zb.appendChild(btn);
+  });
+
+  // Maintenance level tabs — same approach
   var lt = document.getElementById('zs-lvl-tabs');
-  lt.innerHTML = Object.keys(LVL).map(function(k){
-    return '<button class="zs-ltab'+(zsLvl===k?' active':'').replace(/'/g,"")+'" onclick="zsSelectLvl(\''+k+'\')">'+LVL[k]+'</button>';
-  }).join('');
+  lt.innerHTML = '';
+  Object.keys(LVL).forEach(function(k){
+    var btn = document.createElement('button');
+    btn.className = 'zs-ltab' + (zsLvl === k ? ' active' : '');
+    btn.textContent = LVL[k];
+    btn.addEventListener('click', (function(lvl){ return function(){ zsSelectLvl(lvl); }; })(k));
+    lt.appendChild(btn);
+  });
 
   if(!zsZone && ZONES.length) zsSelectZone(ZONES[0].id);
   else { zsRenderTechCard(); zsRenderTable(); }
@@ -1666,16 +1688,39 @@ function zsRenderTechCard(){
   if(!wrap || !zsZone) return;
   var zone = ZONES.find(function(z){ return z.id === zsZone; });
   if(!zone) return;
-  var val = zsTechPerZone[zsZone] || '';
-  wrap.innerHTML =
-    '<div class="zs-tech-card">'+
-    '<div class="zs-tech-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'+
-    '<div class="zs-tech-info">'+
-    '<div class="zs-tech-label">👷 Technician — '+zone.id+'</div>'+
-    '<div class="zs-tech-zone">'+zone.en+' Zone ('+zone.units.length+' units)</div>'+
-    '<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value">'+
-    '</div>'+
-    '</div>';
+
+  wrap.innerHTML = '';
+  var card = document.createElement('div');
+  card.className = 'zs-tech-card';
+
+  var iconDiv = document.createElement('div');
+  iconDiv.className = 'zs-tech-icon';
+  iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+
+  var infoDiv = document.createElement('div');
+  infoDiv.className = 'zs-tech-info';
+
+  var labelDiv = document.createElement('div');
+  labelDiv.className = 'zs-tech-label';
+  labelDiv.textContent = '👷 Technician — ' + zone.id;
+
+  var zoneDiv = document.createElement('div');
+  zoneDiv.className = 'zs-tech-zone';
+  zoneDiv.textContent = zone.en + ' Zone (' + zone.units.length + ' units)';
+
+  var input = document.createElement('input');
+  input.className = 'zs-tech-input';
+  input.id = 'zs-tech-input';
+  input.placeholder = 'Enter technician name for ' + zone.en + '...';
+  input.value = zsTechPerZone[zsZone] || '';
+  input.addEventListener('input', (function(zid){ return function(){ zsTechPerZone[zid] = this.value; }; })(zsZone));
+
+  infoDiv.appendChild(labelDiv);
+  infoDiv.appendChild(zoneDiv);
+  infoDiv.appendChild(input);
+  card.appendChild(iconDiv);
+  card.appendChild(infoDiv);
+  wrap.appendChild(card);
 }
 
 function zsSelectLvl(lvl){
@@ -1705,38 +1750,51 @@ function zsRenderTable(){
     }).join('')+
   '</tr></thead>';
 
+  // Build tbody rows — store uid/cid in data attributes, use event delegation for clicks
   var tbody = '<tbody>'+units.map(function(u){
     return '<tr>'+
       '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+zone.en+'</div></td>'+
       checks.map(function(c){
         if(c.type === 'num'){
           var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
-          return '<td><input class="zs-num" value="'+val+'" oninput="zsSetNum(\''+u.id+'\',\''+c.id+'\',this.value)" placeholder="—"></td>';
+          return '<td><input class="zs-num" value="'+val.toString().replace(/"/g,'&quot;')+'" data-uid="'+u.id+'" data-cid="'+c.id+'" placeholder="—"></td>';
         }
         var v = zsData[u.id] ? zsData[u.id][c.id] : null;
         var cls = v===true?'yes':v===false?'no':'';
         var lbl = v===true?'✓':v===false?'✗':'—';
-        return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+'\',\''+c.id+'\',this)">'+lbl+'</button></td>';
+        return '<td><button class="zs-tog '+cls+'" data-uid="'+u.id+'" data-cid="'+c.id+'">'+lbl+'</button></td>';
       }).join('')+
     '</tr>';
   }).join('')+'</tbody>';
 
-  document.getElementById('zs-table').innerHTML = thead + tbody;
+  var tbl = document.getElementById('zs-table');
+  tbl.innerHTML = thead + tbody;
+
+  // Event delegation — one listener handles all toggle buttons and num inputs
+  tbl.onclick = function(e){
+    var btn = e.target.closest('button.zs-tog');
+    if(!btn) return;
+    var uid = btn.getAttribute('data-uid');
+    var cid = btn.getAttribute('data-cid');
+    if(!uid||!cid) return;
+    if(!zsData[uid]) zsData[uid]={};
+    var cur = zsData[uid][cid];
+    var next = (cur===null||cur===undefined) ? true : cur===true ? false : null;
+    zsData[uid][cid] = next;
+    btn.className = 'zs-tog '+(next===true?'yes':next===false?'no':'');
+    btn.textContent = next===true?'✓':next===false?'✗':'—';
+  };
+  tbl.oninput = function(e){
+    if(!e.target.classList.contains('zs-num')) return;
+    var uid = e.target.getAttribute('data-uid');
+    var cid = e.target.getAttribute('data-cid');
+    if(!uid||!cid) return;
+    if(!zsData[uid]) zsData[uid]={};
+    zsData[uid][cid] = e.target.value;
+  };
 }
 
-function zsTog(uid, cid, btn){
-  if(!zsData[uid]) zsData[uid]={};
-  var cur = zsData[uid][cid];
-  var next = cur===null||cur===undefined ? true : cur===true ? false : null;
-  zsData[uid][cid] = next;
-  btn.className = 'zs-tog '+(next===true?'yes':next===false?'no':'');
-  btn.textContent = next===true?'✓':next===false?'✗':'—';
-}
-
-function zsSetNum(uid, cid, val){
-  if(!zsData[uid]) zsData[uid]={};
-  zsData[uid][cid] = val;
-}
+// zsTog and zsSetNum now handled by event delegation in zsRenderTable
 
 function zsCheckAll(){
   if(!zsZone) return;
