@@ -1606,375 +1606,390 @@ function showSuccessWithSigs(rec,signedCount){
 
 
 // ════ ZONE SHEET ════
-var ZONE_ICONS = {
-  'Z1':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/></svg>',
-  'Z2':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>',
-  'Z3':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  'Z4':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>',
-  'Z5':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
-  'Z6':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>',
-  'Z7':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>',
-  'Z8':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-  'Z9':  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
-  'SB1': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8M18 14V8M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
-  'SB2': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
-  'MT3': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 10h20M2 16h20M7 2v20"/></svg>',
-  'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>'
-};
 
-// ── ZONE SHEET VARIABLES ──
+// Zone SVG icons using a function to avoid any quote issues
+function _zsIcon(id) {
+  var icons = {};
+  var d = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  function mk(id, paths) {
+    var s = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('viewBox','0 0 24 24');
+    s.setAttribute('fill','none');
+    s.setAttribute('stroke','currentColor');
+    s.setAttribute('stroke-width','2');
+    s.setAttribute('stroke-linecap','round');
+    s.setAttribute('stroke-linejoin','round');
+    s.innerHTML = paths;
+    return s;
+  }
+  var map = {
+    'Z1':  '<circle cx="12" cy="12" r="10"/><path d="M8 12h8M12 8v8"/>',
+    'Z2':  '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>',
+    'Z3':  '<path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    'Z4':  '<path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/>',
+    'Z5':  '<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>',
+    'Z6':  '<circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>',
+    'Z7':  '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+    'Z8':  '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+    'Z9':  '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+    'SB1': '<rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8M18 14V8M2 10h20"/><circle cx="12" cy="5" r="3"/>',
+    'SB2': '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>',
+    'MT3': '<rect x="2" y="2" width="20" height="20" rx="2"/><path d="M2 10h20M2 16h20M7 2v20"/>',
+    'MT6': '<path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/>'
+  };
+  var paths = map[id] || '<rect x="3" y="3" width="18" height="18" rx="2"/>';
+  return mk(id, paths);
+}
+
+// ── ZONE SHEET STATE ──
 var zsZone = null;
 var zsLvl  = 'monthly';
-var zsData = {}; // {unitId: {checkId: true/false/null/'value'}}
-var zsTechPerZone = {}; // {zoneId: techName}
+var zsData = {};
+var zsTechPerZone = {};
 
-function initZoneSheet(){
+function initZoneSheet() {
   var d = document.getElementById('zs-date');
-  if(d && !d.value) d.value = new Date().toISOString().slice(0,10);
+  if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
 
-  // Zone buttons — use createElement so SVG attribute quotes never break event handlers
+  // ── Build zone buttons ──
   var zb = document.getElementById('zs-zone-btns');
   zb.innerHTML = '';
-  ZONES.forEach(function(z){
+  ZONES.forEach(function(z) {
     var btn = document.createElement('button');
-    btn.className = 'zs-zbtn' + (zsZone === z.id ? ' active' : '');
+    btn.className = 'zs-zbtn';
+    if (zsZone === z.id) btn.classList.add('active');
     btn.setAttribute('data-zid', z.id);
 
-    var iconWrap = document.createElement('span');
-    iconWrap.className = 'zb-icon';
-    iconWrap.innerHTML = ZONE_ICONS[z.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
+    var wrap = document.createElement('span');
+    wrap.className = 'zb-icon';
+    wrap.appendChild(_zsIcon(z.id));
+    btn.appendChild(wrap);
 
-    var idSpan = document.createElement('span');
-    idSpan.className = 'zb-id';
-    idSpan.textContent = z.id;
+    var sid = document.createElement('span');
+    sid.className = 'zb-id';
+    sid.textContent = z.id;
+    btn.appendChild(sid);
 
-    var enSpan = document.createElement('span');
-    enSpan.className = 'zb-en';
-    enSpan.textContent = z.en;
+    var sen = document.createElement('span');
+    sen.className = 'zb-en';
+    sen.textContent = z.en;
+    btn.appendChild(sen);
 
-    btn.appendChild(iconWrap);
-    btn.appendChild(idSpan);
-    btn.appendChild(enSpan);
-    btn.addEventListener('click', (function(zid){ return function(){ zsSelectZone(zid); }; })(z.id));
+    btn.onclick = (function(zid) { return function() { zsSelectZone(zid); }; })(z.id);
     zb.appendChild(btn);
   });
 
-  // Maintenance level tabs — same approach
+  // ── Build level tabs ──
   var lt = document.getElementById('zs-lvl-tabs');
   lt.innerHTML = '';
-  Object.keys(LVL).forEach(function(k){
+  Object.keys(LVL).forEach(function(k) {
     var btn = document.createElement('button');
-    btn.className = 'zs-ltab' + (zsLvl === k ? ' active' : '');
+    btn.className = 'zs-ltab';
+    if (zsLvl === k) btn.classList.add('active');
     btn.setAttribute('data-lvl', k);
     btn.textContent = LVL[k];
-    btn.addEventListener('click', (function(lvl){ return function(){ zsSelectLvl(lvl); }; })(k));
+    btn.onclick = (function(lvl) { return function() { zsSelectLvl(lvl); }; })(k);
     lt.appendChild(btn);
   });
 
-  if(!zsZone && ZONES.length) zsSelectZone(ZONES[0].id);
-  else { zsRenderTechCard(); zsRenderTable(); }
+  if (!zsZone && ZONES.length) {
+    zsSelectZone(ZONES[0].id);
+  } else {
+    zsRenderTechCard();
+    zsRenderTable();
+  }
 }
 
-function zsSelectZone(zid){
+function zsSelectZone(zid) {
   zsZone = zid;
   zsData = {};
-  document.querySelectorAll('#zs-zone-btns .zs-zbtn').forEach(function(b){
-    b.classList.toggle('active', b.getAttribute('data-zid') === zid);
-  });
+  var btns = document.getElementById('zs-zone-btns');
+  if (btns) {
+    btns.querySelectorAll('.zs-zbtn').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-zid') === zid);
+    });
+  }
   zsRenderTechCard();
   zsRenderTable();
 }
 
-function zsRenderTechCard(){
+function zsSelectLvl(lvl) {
+  zsLvl = lvl;
+  zsData = {};
+  var lt = document.getElementById('zs-lvl-tabs');
+  if (lt) {
+    lt.querySelectorAll('.zs-ltab').forEach(function(b) {
+      b.classList.toggle('active', b.getAttribute('data-lvl') === lvl);
+    });
+  }
+  zsRenderTable();
+}
+
+function zsRenderTechCard() {
   var wrap = document.getElementById('zs-tech-wrap');
-  if(!wrap || !zsZone) return;
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  if(!zone) return;
+  if (!wrap || !zsZone) return;
+  var zone = ZONES.find(function(z) { return z.id === zsZone; });
+  if (!zone) return;
 
   wrap.innerHTML = '';
+
   var card = document.createElement('div');
   card.className = 'zs-tech-card';
 
   var iconDiv = document.createElement('div');
   iconDiv.className = 'zs-tech-icon';
-  iconDiv.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>';
+  var sv = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  sv.setAttribute('viewBox','0 0 24 24'); sv.setAttribute('fill','none');
+  sv.setAttribute('stroke','white'); sv.setAttribute('stroke-width','2');
+  sv.setAttribute('stroke-linecap','round'); sv.setAttribute('stroke-linejoin','round');
+  sv.innerHTML = '<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>';
+  iconDiv.appendChild(sv);
 
   var infoDiv = document.createElement('div');
   infoDiv.className = 'zs-tech-info';
 
-  var labelDiv = document.createElement('div');
-  labelDiv.className = 'zs-tech-label';
-  labelDiv.textContent = '👷 Technician — ' + zone.id;
+  var lbl = document.createElement('div');
+  lbl.className = 'zs-tech-label';
+  lbl.textContent = '👷 Technician — ' + zone.id;
+  infoDiv.appendChild(lbl);
 
-  var zoneDiv = document.createElement('div');
-  zoneDiv.className = 'zs-tech-zone';
-  zoneDiv.textContent = zone.en + ' Zone (' + zone.units.length + ' units)';
+  var sub = document.createElement('div');
+  sub.className = 'zs-tech-zone';
+  sub.textContent = zone.en + ' Zone (' + zone.units.length + ' units)';
+  infoDiv.appendChild(sub);
 
-  var input = document.createElement('input');
-  input.className = 'zs-tech-input';
-  input.id = 'zs-tech-input';
-  input.placeholder = 'Enter technician name for ' + zone.en + '...';
-  input.value = zsTechPerZone[zsZone] || '';
-  input.addEventListener('input', (function(zid){ return function(){ zsTechPerZone[zid] = this.value; }; })(zsZone));
+  var inp = document.createElement('input');
+  inp.className = 'zs-tech-input';
+  inp.placeholder = 'Enter technician name for ' + zone.en + '...';
+  inp.value = zsTechPerZone[zsZone] || '';
+  inp.oninput = (function(zid) { return function() { zsTechPerZone[zid] = this.value; }; })(zsZone);
+  infoDiv.appendChild(inp);
 
-  infoDiv.appendChild(labelDiv);
-  infoDiv.appendChild(zoneDiv);
-  infoDiv.appendChild(input);
   card.appendChild(iconDiv);
   card.appendChild(infoDiv);
   wrap.appendChild(card);
 }
 
-function zsSelectLvl(lvl){
-  zsLvl = lvl;
-  zsData = {};
-  document.querySelectorAll('#zs-lvl-tabs .zs-ltab').forEach(function(b){
-    b.classList.toggle('active', b.getAttribute('data-lvl') === lvl);
-  });
-  zsRenderTable();
-}
+function zsRenderTable() {
+  if (!zsZone) return;
+  var zone = ZONES.find(function(z) { return z.id === zsZone; });
+  if (!zone) return;
 
-function zsRenderTable(){
-  if(!zsZone) return;
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  if(!zone) return;
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var units = zone.units.map(function(u){ return ALL_UNITS[u.id||u]; }).filter(Boolean);
+  var checks = CHECKS[zsLvl].filter(function(c) { return c.type !== 'note'; });
+  var units  = zone.units.map(function(u) { return ALL_UNITS[u.id || u]; }).filter(Boolean);
 
-  units.forEach(function(u){
-    if(!zsData[u.id]) zsData[u.id] = {};
-  });
-
-  var thead = '<thead><tr>'+
-    '<th style="min-width:100px;text-align:left;padding-left:8px">Unit</th>'+
-    checks.map(function(c){
-      return '<th style="min-width:55px"><div>'+c.lbl+'</div><div style="font-size:8px;opacity:.65;font-weight:400;margin-top:1px">'+c.sub+'</div>'+(c.unit?'<div style="font-size:8px;opacity:.65">('+c.unit+')</div>':'')+'</th>';
-    }).join('')+
-  '</tr></thead>';
-
-  // Build tbody rows — store uid/cid in data attributes, use event delegation for clicks
-  var tbody = '<tbody>'+units.map(function(u){
-    return '<tr>'+
-      '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+zone.en+'</div></td>'+
-      checks.map(function(c){
-        if(c.type === 'num'){
-          var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
-          return '<td><input class="zs-num" value="'+val.toString().replace(/"/g,'&quot;')+'" data-uid="'+u.id+'" data-cid="'+c.id+'" placeholder="—"></td>';
-        }
-        var v = zsData[u.id] ? zsData[u.id][c.id] : null;
-        var cls = v===true?'yes':v===false?'no':'';
-        var lbl = v===true?'✓':v===false?'✗':'—';
-        return '<td><button class="zs-tog '+cls+'" data-uid="'+u.id+'" data-cid="'+c.id+'">'+lbl+'</button></td>';
-      }).join('')+
-    '</tr>';
-  }).join('')+'</tbody>';
+  units.forEach(function(u) { if (!zsData[u.id]) zsData[u.id] = {}; });
 
   var tbl = document.getElementById('zs-table');
-  tbl.innerHTML = thead + tbody;
+  tbl.innerHTML = '';
 
-  // Event delegation — one listener handles all toggle buttons and num inputs
-  tbl.onclick = function(e){
-    var btn = e.target.closest('button.zs-tog');
-    if(!btn) return;
-    var uid = btn.getAttribute('data-uid');
-    var cid = btn.getAttribute('data-cid');
-    if(!uid||!cid) return;
-    if(!zsData[uid]) zsData[uid]={};
-    var cur = zsData[uid][cid];
-    var next = (cur===null||cur===undefined) ? true : cur===true ? false : null;
-    zsData[uid][cid] = next;
-    btn.className = 'zs-tog '+(next===true?'yes':next===false?'no':'');
-    btn.textContent = next===true?'✓':next===false?'✗':'—';
-  };
-  tbl.oninput = function(e){
-    if(!e.target.classList.contains('zs-num')) return;
-    var uid = e.target.getAttribute('data-uid');
-    var cid = e.target.getAttribute('data-cid');
-    if(!uid||!cid) return;
-    if(!zsData[uid]) zsData[uid]={};
-    zsData[uid][cid] = e.target.value;
-  };
+  // thead
+  var thead = document.createElement('thead');
+  var hr = document.createElement('tr');
+  var th0 = document.createElement('th');
+  th0.style.cssText = 'min-width:100px;text-align:left;padding-left:8px';
+  th0.textContent = 'Unit';
+  hr.appendChild(th0);
+  checks.forEach(function(c) {
+    var th = document.createElement('th');
+    th.style.minWidth = '55px';
+    var d1 = document.createElement('div'); d1.textContent = c.lbl; th.appendChild(d1);
+    var d2 = document.createElement('div'); d2.style.cssText = 'font-size:8px;opacity:.65;font-weight:400;margin-top:1px'; d2.textContent = c.sub; th.appendChild(d2);
+    hr.appendChild(th);
+  });
+  thead.appendChild(hr);
+  tbl.appendChild(thead);
+
+  // tbody
+  var tbody = document.createElement('tbody');
+  units.forEach(function(u) {
+    var tr = document.createElement('tr');
+
+    var td0 = document.createElement('td');
+    td0.textContent = u.name;
+    var sub = document.createElement('div');
+    sub.style.cssText = 'font-size:9px;color:#8a94a6;font-weight:400';
+    sub.textContent = zone.en;
+    td0.appendChild(sub);
+    tr.appendChild(td0);
+
+    checks.forEach(function(c) {
+      var td = document.createElement('td');
+      if (c.type === 'num') {
+        var inp = document.createElement('input');
+        inp.className = 'zs-num';
+        inp.placeholder = '—';
+        inp.value = (zsData[u.id] && zsData[u.id][c.id] !== undefined) ? zsData[u.id][c.id] : '';
+        inp.oninput = (function(uid, cid) { return function() {
+          if (!zsData[uid]) zsData[uid] = {};
+          zsData[uid][cid] = this.value;
+        }; })(u.id, c.id);
+        td.appendChild(inp);
+      } else {
+        var v = zsData[u.id] ? zsData[u.id][c.id] : null;
+        var btn = document.createElement('button');
+        btn.className = 'zs-tog' + (v === true ? ' yes' : v === false ? ' no' : '');
+        btn.textContent = v === true ? '✓' : v === false ? '✗' : '—';
+        btn.onclick = (function(uid, cid, b) { return function() {
+          if (!zsData[uid]) zsData[uid] = {};
+          var cur = zsData[uid][cid];
+          var next = (cur === null || cur === undefined) ? true : cur === true ? false : null;
+          zsData[uid][cid] = next;
+          b.className = 'zs-tog' + (next === true ? ' yes' : next === false ? ' no' : '');
+          b.textContent = next === true ? '✓' : next === false ? '✗' : '—';
+        }; })(u.id, c.id, btn);
+        td.appendChild(btn);
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody);
 }
 
-// zsTog and zsSetNum now handled by event delegation in zsRenderTable
-
-function zsCheckAll(){
-  if(!zsZone) return;
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type==='tog'; });
-  zone.units.forEach(function(u){
-    var uid = u.id||u;
-    if(!zsData[uid]) zsData[uid]={};
-    checks.forEach(function(c){ zsData[uid][c.id] = true; });
+function zsCheckAll() {
+  if (!zsZone) return;
+  var zone = ZONES.find(function(z) { return z.id === zsZone; });
+  if (!zone) return;
+  var checks = CHECKS[zsLvl].filter(function(c) { return c.type === 'tog'; });
+  zone.units.forEach(function(u) {
+    var uid = u.id || u;
+    if (!zsData[uid]) zsData[uid] = {};
+    checks.forEach(function(c) { zsData[uid][c.id] = true; });
   });
   zsRenderTable();
 }
 
-function zsClearAll(){
+function zsClearAll() {
   zsData = {};
   zsRenderTable();
 }
 
-function zsSaveAll(){
-  if(!zsZone){ alert('Select a zone first'); return; }
-  var tech = (zsTechPerZone[zsZone]||'').trim();
+function zsSaveAll() {
+  if (!zsZone) { alert('Select a zone first'); return; }
+  var tech = (zsTechPerZone[zsZone] || '').trim();
   var date = document.getElementById('zs-date').value;
-  if(!tech){ alert('Enter technician name for this zone'); return; }
-  if(!date){ alert('Select a date'); return; }
+  if (!tech) { alert('Enter technician name for this zone'); return; }
+  if (!date) { alert('Select a date'); return; }
 
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var saved = 0;
+  var zone   = ZONES.find(function(z) { return z.id === zsZone; });
+  var checks = CHECKS[zsLvl].filter(function(c) { return c.type !== 'note'; });
+  var saved  = 0;
 
-  zone.units.forEach(function(u){
-    var uid = u.id||u;
+  zone.units.forEach(function(u) {
+    var uid  = u.id || u;
     var unit = ALL_UNITS[uid];
-    if(!unit) return;
-    var data = zsData[uid] || {};
-    var togs = checks.filter(function(c){ return c.type === 'tog'; });
-    var doneT = togs.filter(function(c){ return data[c.id]===true; }).length;
-    var notDoneT = togs.filter(function(c){ return data[c.id]===false; }).length;
+    if (!unit) return;
+    var data  = zsData[uid] || {};
+    var togs  = checks.filter(function(c) { return c.type === 'tog'; });
+    var doneT = togs.filter(function(c) { return data[c.id] === true; }).length;
+    var notDT = togs.filter(function(c) { return data[c.id] === false; }).length;
     var rec = {
-      unitId: unit.id,
-      unit: JSON.parse(JSON.stringify(unit)),
-      lvl: zsLvl,
-      date: date,
-      tech: tech,
-      doneT: doneT,
-      notDoneT: notDoneT,
+      unitId: unit.id, unit: JSON.parse(JSON.stringify(unit)),
+      lvl: zsLvl, date: date, tech: tech,
+      doneT: doneT, notDoneT: notDT,
       data: JSON.parse(JSON.stringify(data)),
       _fromZoneSheet: true
     };
-    if(typeof fbConnected !== 'undefined' && fbConnected && db){
-      db.collection(COL).add(rec).then(function(docRef){
-        rec._fbId = docRef.id;
-      }).catch(function(){});
+    if (typeof fbConnected !== 'undefined' && fbConnected && db) {
+      db.collection(COL).add(rec).catch(function(){});
     }
     records.unshift(rec);
     saved++;
   });
 
-  try{ localStorage.setItem('exfan_records_v2', JSON.stringify(records.slice(0,500))); }catch(e){}
+  try { localStorage.setItem('exfan_records_v2', JSON.stringify(records.slice(0, 500))); } catch(e){}
   renderRecs();
-  var msg = '✅ Saved '+saved+' units successfully!\n'+zone.name+' | '+LVL_EN[zsLvl]+' | '+date;
-  if(confirm(msg+'\n\nDo you want to print the zone log?')) zsOpenPrint();
+  var msg = '✅ Saved ' + saved + ' units — ' + zone.name + ' | ' + LVL_EN[zsLvl] + ' | ' + date;
+  if (confirm(msg + '\n\nPrint zone log?')) zsOpenPrint();
 }
 
-function zsOpenPrint(){
-  if(!zsZone){ alert('Select a zone first'); return; }
-  var tech = (zsTechPerZone[zsZone]||'').trim() || '—';
-  var date = document.getElementById('zs-date').value || new Date().toISOString().slice(0,10);
-  var zone = ZONES.find(function(z){ return z.id === zsZone; });
-  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var units = zone.units.map(function(u){ return ALL_UNITS[u.id||u]; }).filter(Boolean);
+function zsOpenPrint() {
+  if (!zsZone) { alert('Select a zone first'); return; }
+  var zone   = ZONES.find(function(z) { return z.id === zsZone; });
+  if (!zone) return;
+  var checks = CHECKS[zsLvl].filter(function(c) { return c.type !== 'note'; });
+  var units  = zone.units.map(function(u) { return ALL_UNITS[u.id || u]; }).filter(Boolean);
+  var date   = document.getElementById('zs-date').value || '—';
+  var tech   = (zsTechPerZone[zsZone] || '').trim() || '—';
+  var lvlLbl = LVL_EN[zsLvl] || zsLvl;
 
-  var w = window.open('','_blank');
-  if(!w){ alert('Enable popup windows'); return; }
-
-  var thCells = checks.map(function(c){
-    return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
+  var thCells = checks.map(function(c) {
+    return '<th>' + c.lbl + '</th>';
   }).join('');
 
-  var rows = units.map(function(u, ri){
-    var data = zsData[u.id] || {};
-    var togs = checks.filter(function(c){ return c.type==='tog'; });
-    var done = togs.filter(function(c){ return data[c.id]===true; }).length;
-    var nd   = togs.filter(function(c){ return data[c.id]===false; }).length;
-    var cells = checks.map(function(c){
-      if(c.type==='num'){
-        var v = data[c.id]||'';
-        return '<td style="font-weight:700">'+(v||'—')+'</td>';
-      }
+  var rows = units.map(function(u) {
+    var data   = zsData[u.id] || {};
+    var togs   = checks.filter(function(c) { return c.type === 'tog'; });
+    var doneT  = togs.filter(function(c) { return data[c.id] === true; }).length;
+    var notDT  = togs.filter(function(c) { return data[c.id] === false; }).length;
+    var cells  = checks.map(function(c) {
       var v = data[c.id];
-      return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
+      var txt = v === true ? '✓' : v === false ? '✗' : '—';
+      var col = v === true ? '#1a7a4a' : v === false ? '#c0392b' : '#aaa';
+      return '<td style="color:' + col + ';font-weight:700;font-size:13px">' + txt + '</td>';
     }).join('');
-    return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'+
-      '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'+
-      cells+
-      '<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'+
-      '<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'+
-    '</tr>';
+    return '<tr><td>' + u.name + '</td>' + cells +
+      '<td style="color:#1a7a4a;font-weight:700">' + doneT + '</td>' +
+      '<td style="color:#c0392b;font-weight:700">' + notDT + '</td></tr>';
   }).join('');
 
-  w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8">'+
-    '<title>Zone Sheet - '+zone.name+'</title>'+
-    '<style>'+
-    '*{box-sizing:border-box;margin:0;padding:0}'+
-    'body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111}'+
-    '.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}'+
-    '.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
-    '.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
-    '.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}'+
-    '.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'+
-    '.hdr-title{font-size:14px;font-weight:800}'+
-    '.hdr-sub{font-size:9px;opacity:.7;margin-top:2px}'+
-    '.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'+
-    '.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0;min-width:0}'+
-    '.meta-cell:last-child{border-right:none}'+
-    '.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'+
-    '.meta-val{font-size:12px;font-weight:800;color:#0a2e5c;word-break:break-word}'+
-    '.table-wrap{overflow-x:auto;width:100%}'+
-    'table{width:100%;border-collapse:collapse;font-size:10px;table-layout:auto}'+
-    'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3;white-space:nowrap}'+
-    'th:first-child{text-align:left;min-width:90px;white-space:normal}'+
-    'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'+
-    'td:first-child{text-align:left;font-weight:600;min-width:90px}'+
-    '.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'+
-    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'+
-    '.sig-box{text-align:center}'+
-    '.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'+
-    '.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'+
-    '.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'+
-    '@media print{.no-print{display:none!important}body{padding:6px}table{font-size:9px}.table-wrap{overflow:visible}}'+
-    '</style></head><body>'+
-    '<div class="no-print">'+
-      '<button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>'+
-      '<button class="btn-pr" onclick="window.print()">🖨️ Print</button>'+
-      '<div class="tip">💡 To Save as PDF: press the button above ← select <b>«Save as PDF»</b>. Recommended: <b>Landscape</b></div>'+
-    '</div>'+
-    '<div class="main-hdr">'+
-      '<div>'+
-        '<div class="hdr-title">💨 EX Fan Preventive Maintenance — Zone Log Sheet</div>'+
-        '<div class="hdr-sub">AL MAJAL AL ARABI GROUP | King Faisal Medical Complex — Medical Tower</div>'+
-      '</div>'+
-      '<div style="text-align:right">'+
-        '<div style="font-size:13px;font-weight:800">'+zone.name+'</div>'+
-        '<div style="font-size:9px;opacity:.7">'+zone.en+'</div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="meta-bar">'+
-      '<div class="meta-cell"><div class="meta-lbl">🗂️ Zone</div><div class="meta-val">'+zone.name+' — '+zone.en+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">⚙️ Maintenance Level</div><div class="meta-val">'+LVL_EN[zsLvl]+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">📅 Date</div><div class="meta-val">'+date+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">👷 Technician</div><div class="meta-val">'+tech+'</div></div>'+
-      '<div class="meta-cell"><div class="meta-lbl">🏢 Units</div><div class="meta-val">'+units.length+'</div></div>'+
-    '</div>'+
-    '<div class="table-wrap">'+
-    '<table>'+
-      '<thead><tr>'+
-        '<th>Unit</th>'+thCells+
-        '<th style="background:#1a7a4a">✓ Done</th>'+
-        '<th style="background:#c0392b">✗ Follow-up</th>'+
-      '</tr></thead>'+
-      '<tbody>'+rows+'</tbody>'+
-    '</table>'+
-    '</div>'+
-    '<div class="sig-section">'+
-      '<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'+
-      '<div class="sig-grid">'+
-        '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'+
-      '</div>'+
-    '</div>'+
-    '<div class="footer">'+
-      '<span>EX Fan Zone Log Sheet — King Faisal Medical Complex</span>'+
-      '<span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span>'+
-    '</div>'+
-    '</body></html>');
+  var w = window.open('', '_blank');
+  if (!w) { alert('Allow popups to print'); return; }
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">');
+  w.document.write('<title>PPM Zone Log — ' + zone.name + '</title>');
+  w.document.write('<style>');
+  w.document.write('*{box-sizing:border-box;margin:0;padding:0}');
+  w.document.write('body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111}');
+  w.document.write('.no-print{display:flex;gap:8px;margin-bottom:12px}');
+  w.document.write('.btn{border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer;color:#fff}');
+  w.document.write('.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}');
+  w.document.write('.hdr-title{font-size:14px;font-weight:800}');
+  w.document.write('.meta-bar{display:flex;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}');
+  w.document.write('.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}');
+  w.document.write('.meta-cell:last-child{border-right:none}');
+  w.document.write('.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}');
+  w.document.write('.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}');
+  w.document.write('.table-wrap{overflow-x:auto;width:100%}');
+  w.document.write('table{width:100%;border-collapse:collapse;font-size:10px}');
+  w.document.write('th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;white-space:nowrap}');
+  w.document.write('th:first-child{text-align:left;min-width:90px;white-space:normal}');
+  w.document.write('td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}');
+  w.document.write('td:first-child{text-align:left;font-weight:600;min-width:90px}');
+  w.document.write('.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}');
+  w.document.write('.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}');
+  w.document.write('.sig-box{text-align:center}');
+  w.document.write('.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}');
+  w.document.write('.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}');
+  w.document.write('.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}');
+  w.document.write('@media print{.no-print{display:none!important}body{padding:6px}}');
+  w.document.write('</style></head><body>');
+  w.document.write('<div class="no-print">');
+  w.document.write('<button class="btn" style="background:#0a2e5c" onclick="window.print()">🖨️ Print</button>');
+  w.document.write('<button class="btn" style="background:#555" onclick="window.close()">✕ Close</button>');
+  w.document.write('</div>');
+  w.document.write('<div class="main-hdr"><div><div class="hdr-title">📋 PPM Zone Maintenance Log</div><div style="font-size:9px;opacity:.7;margin-top:2px">King Faisal Medical Complex — AL MAJAL</div></div><div style="font-size:11px;font-weight:700;opacity:.85">' + zone.name + '</div></div>');
+  w.document.write('<div class="meta-bar">');
+  w.document.write('<div class="meta-cell"><div class="meta-lbl">Zone</div><div class="meta-val">' + zone.name + '</div></div>');
+  w.document.write('<div class="meta-cell"><div class="meta-lbl">Type</div><div class="meta-val">' + lvlLbl + '</div></div>');
+  w.document.write('<div class="meta-cell"><div class="meta-lbl">Date</div><div class="meta-val">' + date + '</div></div>');
+  w.document.write('<div class="meta-cell"><div class="meta-lbl">Technician</div><div class="meta-val">' + tech + '</div></div>');
+  w.document.write('<div class="meta-cell"><div class="meta-lbl">Total Units</div><div class="meta-val">' + units.length + '</div></div>');
+  w.document.write('</div>');
+  w.document.write('<div class="table-wrap"><table>');
+  w.document.write('<thead><tr><th style="text-align:left">Unit</th>' + thCells + '<th style="background:#1a7a4a">✓ Done</th><th style="background:#c0392b">✗ Not Done</th></tr></thead>');
+  w.document.write('<tbody>' + rows + '</tbody>');
+  w.document.write('</table></div>');
+  w.document.write('<div class="sig-section"><div class="sig-grid">');
+  w.document.write('<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name &amp; Sign</div></div>');
+  w.document.write('<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name &amp; Sign</div></div>');
+  w.document.write('<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name &amp; Sign</div></div>');
+  w.document.write('</div></div>');
+  w.document.write('<div class="footer"><span>EX Fans PPM System</span><span>Printed: ' + new Date().toLocaleString() + '</span></div>');
+  w.document.write('</body></html>');
   w.document.close();
 }
-
 </script>
 
 
