@@ -1638,6 +1638,7 @@ function initZoneSheet(){
   ZONES.forEach(function(z){
     var btn = document.createElement('button');
     btn.className = 'zs-zbtn' + (zsZone === z.id ? ' active' : '');
+    btn.setAttribute('data-zid', z.id);
 
     var iconWrap = document.createElement('span');
     iconWrap.className = 'zb-icon';
@@ -1664,6 +1665,7 @@ function initZoneSheet(){
   Object.keys(LVL).forEach(function(k){
     var btn = document.createElement('button');
     btn.className = 'zs-ltab' + (zsLvl === k ? ' active' : '');
+    btn.setAttribute('data-lvl', k);
     btn.textContent = LVL[k];
     btn.addEventListener('click', (function(lvl){ return function(){ zsSelectLvl(lvl); }; })(k));
     lt.appendChild(btn);
@@ -1676,8 +1678,8 @@ function initZoneSheet(){
 function zsSelectZone(zid){
   zsZone = zid;
   zsData = {};
-  document.querySelectorAll('.zs-zbtn').forEach(function(b,i){
-    b.classList.toggle('active', ZONES[i].id === zid);
+  document.querySelectorAll('#zs-zone-btns .zs-zbtn').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-zid') === zid);
   });
   zsRenderTechCard();
   zsRenderTable();
@@ -1726,8 +1728,8 @@ function zsRenderTechCard(){
 function zsSelectLvl(lvl){
   zsLvl = lvl;
   zsData = {};
-  document.querySelectorAll('.zs-ltab').forEach(function(b,i){
-    b.classList.toggle('active', Object.keys(LVL)[i] === lvl);
+  document.querySelectorAll('#zs-lvl-tabs .zs-ltab').forEach(function(b){
+    b.classList.toggle('active', b.getAttribute('data-lvl') === lvl);
   });
   zsRenderTable();
 }
