@@ -1091,7 +1091,7 @@ function quickPrint(rec){
   </div>
   <div class="footer"><span>EX Fans PPM System — Auto-generated</span><span>King Faisal Medical Complex | ${new Date().toLocaleDateString('ar-SA')}</span></div>
   </body></html>`);
-  w.document.close(); setTimeout(()=>w.print(),500);
+  w.document.close(); setTimeout(function(){ w.focus(); w.print(); }, 500); setTimeout(()=>w.print(),500);
 }
 
 // =====================================================
@@ -1170,7 +1170,7 @@ function shareReport(rec){
   </div>
   <div class="footer"><span>EX Fans PPM System — Auto-generated</span><span>King Faisal Medical Complex | ${new Date().toLocaleDateString('ar-SA')}</span></div>
   </body></html>`);
-  w.document.close();
+  w.document.close(); setTimeout(function(){ w.focus(); w.print(); }, 500);
 }
 function clipCopy(txt){
   if(navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>alert('✅ Report copied!'));
@@ -2040,177 +2040,131 @@ function zsOpenPrint() {
   if (!zone) return;
   var checks = CHECKS[zsLvl].filter(function(c) { return c.type !== 'note'; });
   var units  = zone.units.map(function(u) { return ALL_UNITS[u.id || u]; }).filter(Boolean);
-  var date   = document.getElementById('zs-date').value || '—';
+  var date   = document.getElementById('zs-date').value || new Date().toISOString().slice(0,10);
   var tech   = (zsTechPerZone[zsZone] || '').trim() || '—';
   var lvlLbl = LVL_EN[zsLvl] || zsLvl;
 
+  var w = window.open('', '_blank');
+  if (!w) { alert('Please allow pop-ups for this page to print.'); return; }
+
   var thCells = checks.map(function(c) {
-    return '<th>' + c.lbl + '</th>';
+    return '<th>' + c.lbl + '<br><span style="font-weight:400;font-size:8px;opacity:.7">' + c.sub + '</span></th>';
   }).join('');
 
-  var rows = units.map(function(u) {
-    var data   = zsData[u.id] || {};
-    var togs   = checks.filter(function(c) { return c.type === 'tog'; });
-    var doneT  = togs.filter(function(c) { return data[c.id] === true; }).length;
-    var notDT  = togs.filter(function(c) { return data[c.id] === false; }).length;
-    var cells  = checks.map(function(c) {
-      var v = data[c.id];
-      var txt = v === true ? '✓' : v === false ? '✗' : '—';
-      var col = v === true ? '#1a7a4a' : v === false ? '#c0392b' : '#aaa';
-      return '<td style="color:' + col + ';font-weight:700;font-size:13px">' + txt + '</td>';
-    }).join('');
-    return '<tr><td>' + u.name + '</td>' + cells +
-      '<td style="color:#1a7a4a;font-weight:700">' + doneT + '</td>' +
-      '<td style="color:#c0392b;font-weight:700">' + notDT + '</td></tr>';
-  }).join('');
-
-  var html = ''
-    + '<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    + '<title>PPM Zone Log — ' + zone.name + '</title>'
-    + '<style>'
-    + '*{box-sizing:border-box;margin:0;padding:0}'
-    + 'body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
-    + '.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'
-    + '.hdr-title{font-size:14px;font-weight:800}'
-    + '.meta-bar{display:flex;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'
-    + '.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}'
-    + '.meta-cell:last-child{border-right:none}'
-    + '.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'
-    + '.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}'
-    + '.table-wrap{width:100%}'
-    + 'table{width:100%;border-collapse:collapse;font-size:10px}'
-    + 'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;white-space:nowrap}'
-    + 'th:first-child{text-align:left;min-width:90px;white-space:normal}'
-    + 'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'
-    + 'td:first-child{text-align:left;font-weight:600;min-width:90px}'
-    + '.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'
-    + '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'
-    + '.sig-box{text-align:center}'
-    + '.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'
-    + '.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'
-    + '.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'
-    + '@page{size:A4 landscape;margin:8mm}'
-    + '</style></head><body>'
-    + '<div class="main-hdr"><div><div class="hdr-title">📋 PPM Zone Maintenance Log</div><div style="font-size:9px;opacity:.7;margin-top:2px">King Faisal Medical Complex — AL MAJAL</div></div><div style="font-size:11px;font-weight:700;opacity:.85">' + zone.name + '</div></div>'
-    + '<div class="meta-bar">'
-    + '<div class="meta-cell"><div class="meta-lbl">Zone</div><div class="meta-val">' + zone.name + '</div></div>'
-    + '<div class="meta-cell"><div class="meta-lbl">Type</div><div class="meta-val">' + lvlLbl + '</div></div>'
-    + '<div class="meta-cell"><div class="meta-lbl">Date</div><div class="meta-val">' + date + '</div></div>'
-    + '<div class="meta-cell"><div class="meta-lbl">Technician</div><div class="meta-val">' + tech + '</div></div>'
-    + '<div class="meta-cell"><div class="meta-lbl">Total Units</div><div class="meta-val">' + units.length + '</div></div>'
-    + '</div>'
-    + '<div class="table-wrap"><table>'
-    + '<thead><tr><th style="text-align:left">Unit</th>' + thCells + '<th style="background:#1a7a4a">✓ Done</th><th style="background:#c0392b">✗ Not Done</th></tr></thead>'
-    + '<tbody>' + rows + '</tbody>'
-    + '</table></div>'
-    + (function(){
-        var rmk = (zsRemarksPerZone[zsZone] || '').trim();
-        if (!rmk) return '';
-        var safe = rmk.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-        return '<div style="margin-top:14px;border:1.5px solid #0a2e5c;border-radius:9px;padding:10px 12px;background:#f9fafb">'
-             + '<div style="font-size:9px;font-weight:700;color:#0a2e5c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">📝 Remarks / Notes</div>'
-             + '<div style="font-size:11px;line-height:1.5;color:#0d1b2a;white-space:pre-wrap">' + safe + '</div>'
-             + '</div>';
-      })()
-    + '<div class="sig-section"><div class="sig-grid">'
-    + '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name &amp; Sign</div></div>'
-    + '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name &amp; Sign</div></div>'
-    + '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name &amp; Sign</div></div>'
-    + '</div></div>'
-    + '<div class="footer"><span>EX Fans PPM System</span><span>Printed: ' + new Date().toLocaleString() + '</span></div>'
-    + '</body></html>';
-
-  // === Print overlay — srcdoc preview + Blob-URL hidden iframe for reliable printing ===
-  var oldOv = document.getElementById('zs-print-overlay'); if (oldOv) oldOv.remove();
-
-  // ── Overlay shell ──
-  var ov = document.createElement('div');
-  ov.id = 'zs-print-overlay';
-  ov.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;background:#525659';
-
-  // ── Toolbar ──
-  var tb = document.createElement('div');
-  tb.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;'
-    + 'background:#0a2e5c;color:#fff;padding:10px 14px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.35)';
-
-  var titleDiv = document.createElement('div');
-  titleDiv.style.cssText = 'font-weight:800;font-size:13px';
-  titleDiv.textContent = '\uD83D\uDCCB Print Preview \u2014 ' + zone.name;
-
-  var btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display:flex;gap:8px';
-
-  var printBtn = document.createElement('button');
-  printBtn.style.cssText = 'background:#fff;color:#0a2e5c;border:0;padding:8px 16px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer';
-  printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
-
-  var closeBtn = document.createElement('button');
-  closeBtn.style.cssText = 'background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:8px 14px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer';
-  closeBtn.textContent = '\u2715 Close';
-
-  btnRow.appendChild(printBtn);
-  btnRow.appendChild(closeBtn);
-  tb.appendChild(titleDiv);
-  tb.appendChild(btnRow);
-
-  // ── Preview iframe using srcdoc (no document.write, no cross-origin issues) ──
-  var previewFrame = document.createElement('iframe');
-  previewFrame.style.cssText = 'flex:1;width:100%;border:0;background:#fff';
-  previewFrame.setAttribute('srcdoc', html);  // srcdoc is the modern, reliable way
-
-  ov.appendChild(tb);
-  ov.appendChild(previewFrame);
-  document.body.appendChild(ov);
-
-  // ── Close ──
-  function closeOverlay() {
-    var o = document.getElementById('zs-print-overlay');
-    if (o) o.remove();
-  }
-  closeBtn.onclick = closeOverlay;
-
-  // ── Print via hidden Blob-URL iframe (most reliable cross-browser method) ──
-  printBtn.onclick = function() {
-    printBtn.disabled = true;
-    printBtn.textContent = 'Preparing...';
-
-    try {
-      // First try: print directly from the visible preview iframe
-      previewFrame.contentWindow.focus();
-      previewFrame.contentWindow.print();
-      printBtn.disabled = false;
-      printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
-    } catch (e) {
-      // Fallback: create a Blob URL and load into a hidden iframe, then print
-      try {
-        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-        var blobUrl = URL.createObjectURL(blob);
-        var pf = document.createElement('iframe');
-        pf.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;width:0;height:0;border:0';
-        pf.src = blobUrl;
-        document.body.appendChild(pf);
-        pf.onload = function() {
-          try {
-            pf.contentWindow.focus();
-            pf.contentWindow.print();
-          } catch (e2) { /* silent */ }
-          setTimeout(function() {
-            if (pf.parentNode) pf.parentNode.removeChild(pf);
-            URL.revokeObjectURL(blobUrl);
-          }, 5000);
-          printBtn.disabled = false;
-          printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
-        };
-      } catch (e3) {
-        printBtn.disabled = false;
-        printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
-        alert('Print not available on this browser. Please use the Download button instead.');
+  var rows = units.map(function(u, ri) {
+    var data  = zsData[u.id] || {};
+    var togs  = checks.filter(function(c) { return c.type === 'tog'; });
+    var doneT = togs.filter(function(c) { return data[c.id] === true; }).length;
+    var notDT = togs.filter(function(c) { return data[c.id] === false; }).length;
+    var cells = checks.map(function(c) {
+      if (c.type === 'num') {
+        var v = data[c.id] || '';
+        return '<td style="font-weight:700">' + (v || '—') + '</td>';
       }
-    }
-  };
+      var v = data[c.id];
+      return '<td style="font-size:13px">' +
+        (v === true  ? '<span style="color:#1a7a4a;font-weight:900">✓</span>' :
+         v === false ? '<span style="color:#c0392b;font-weight:900">✗</span>' :
+                       '<span style="color:#ccc">—</span>') + '</td>';
+    }).join('');
+    return '<tr style="background:' + (ri % 2 ? '#f9fafb' : '#fff') + '">' +
+      '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">' + (ri + 1) + '. ' + u.name + '</td>' +
+      cells +
+      '<td style="color:#1a7a4a;font-weight:700">' + doneT + '</td>' +
+      '<td style="color:' + (notDT ? '#c0392b' : '#1a7a4a') + ';font-weight:700">' + notDT + '</td>' +
+      '</tr>';
+  }).join('');
+
+  var rmkHtml = '';
+  var rmk = (zsRemarksPerZone[zsZone] || '').trim();
+  if (rmk) {
+    var safe = rmk.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    rmkHtml = '<div style="margin-top:14px;border:1.5px solid #0a2e5c;border-radius:9px;padding:10px 12px;background:#f9fafb">' +
+      '<div style="font-size:9px;font-weight:700;color:#0a2e5c;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px">📝 Remarks / Notes</div>' +
+      '<div style="font-size:11px;line-height:1.5;color:#0d1b2a;white-space:pre-wrap">' + safe + '</div>' +
+      '</div>';
+  }
+
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">' +
+    '<title>PPM Zone Log — ' + zone.name + '</title>' +
+    '<style>' +
+    '*{box-sizing:border-box;margin:0;padding:0}' +
+    'body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    '.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}' +
+    '.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}' +
+    '.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}' +
+    '.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}' +
+    '.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}' +
+    '.hdr-title{font-size:14px;font-weight:800}' +
+    '.hdr-sub{font-size:9px;opacity:.7;margin-top:2px}' +
+    '.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}' +
+    '.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}' +
+    '.meta-cell:last-child{border-right:none}' +
+    '.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}' +
+    '.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}' +
+    'table{width:100%;border-collapse:collapse;font-size:10px}' +
+    'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3}' +
+    'th:first-child{text-align:left;min-width:90px}' +
+    'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}' +
+    'td:first-child{text-align:left}' +
+    '.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}' +
+    '.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}' +
+    '.sig-box{text-align:center}' +
+    '.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}' +
+    '.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}' +
+    '.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}' +
+    '@media print{.no-print{display:none!important}body{padding:8px}}' +
+    '@page{size:A4 landscape;margin:8mm}' +
+    '</style></head><body>' +
+    '<div class="no-print">' +
+      '<button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>' +
+      '<button class="btn-pr"  onclick="window.print()">🖨️ Print</button>' +
+      '<div class="tip">💡 To save as PDF: press the button above → choose <b>«Save as PDF»</b>. Recommended orientation: <b>Landscape</b></div>' +
+    '</div>' +
+    '<div class="main-hdr">' +
+      '<div>' +
+        '<div class="hdr-title">💨 EX Fan PPM — Zone Maintenance Log</div>' +
+        '<div class="hdr-sub">AL MAJAL AL ARABI GROUP | King Faisal Medical Complex</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        '<div style="font-size:13px;font-weight:800">' + zone.name + '</div>' +
+        '<div style="font-size:9px;opacity:.7">' + (zone.en || '') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="meta-bar">' +
+      '<div class="meta-cell"><div class="meta-lbl">🗂️ Zone</div><div class="meta-val">' + zone.name + '</div></div>' +
+      '<div class="meta-cell"><div class="meta-lbl">⚙️ Maintenance Type</div><div class="meta-val">' + lvlLbl + '</div></div>' +
+      '<div class="meta-cell"><div class="meta-lbl">📅 Date</div><div class="meta-val">' + date + '</div></div>' +
+      '<div class="meta-cell"><div class="meta-lbl">👷 Technician</div><div class="meta-val">' + tech + '</div></div>' +
+      '<div class="meta-cell"><div class="meta-lbl">💨 Units</div><div class="meta-val">' + units.length + '</div></div>' +
+    '</div>' +
+    '<table>' +
+      '<thead><tr>' +
+        '<th>Unit</th>' + thCells +
+        '<th style="background:#1a7a4a">✓ Done</th>' +
+        '<th style="background:#c0392b">✗ Follow-up</th>' +
+      '</tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table>' +
+    rmkHtml +
+    '<div class="sig-section">' +
+      '<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>' +
+      '<div class="sig-grid">' +
+        '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>' +
+        '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>' +
+        '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="footer">' +
+      '<span>EX Fans PPM System — Zone Log Sheet</span>' +
+      '<span>King Faisal Medical Complex | ' + new Date().toLocaleDateString('en-GB') + '</span>' +
+    '</div>' +
+    '</body></html>');
+  w.document.close(); setTimeout(function(){ w.focus(); w.print(); }, 500);
 }
 </script>
 
 
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
