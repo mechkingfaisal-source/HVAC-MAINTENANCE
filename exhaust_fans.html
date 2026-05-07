@@ -2120,76 +2120,93 @@ function zsOpenPrint() {
     + '<div class="footer"><span>EX Fans PPM System</span><span>Printed: ' + new Date().toLocaleString() + '</span></div>'
     + '</body></html>';
 
-  // === In-page preview overlay using an isolated iframe ===
-  // Using an iframe completely avoids CSS conflicts with the app (overflow:hidden, fixed positions, etc.)
-  // iframe.contentWindow.print() prints ONLY the iframe content — no need to inject any CSS into the parent.
-
-  // Remove any previous overlay
+  // === Print overlay — srcdoc preview + Blob-URL hidden iframe for reliable printing ===
   var oldOv = document.getElementById('zs-print-overlay'); if (oldOv) oldOv.remove();
 
-  // Build overlay shell
+  // ── Overlay shell ──
   var ov = document.createElement('div');
   ov.id = 'zs-print-overlay';
   ov.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;background:#525659';
 
-  // Toolbar
+  // ── Toolbar ──
   var tb = document.createElement('div');
   tb.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:10px;'
-    + 'background:#0a2e5c;color:#fff;padding:10px 14px;flex-shrink:0;'
-    + 'box-shadow:0 2px 6px rgba(0,0,0,.35)';
-  tb.innerHTML =
-    '<div style="font-weight:800;font-size:13px">&#128203; Print Preview &mdash; ' + zone.name + '</div>'
-    + '<div style="display:flex;gap:8px">'
-    +   '<button id="zs-print-go" style="background:#fff;color:#0a2e5c;border:0;padding:8px 16px;'
-    +     'border-radius:7px;font-weight:700;font-size:13px;cursor:pointer">&#128424;&#65039; Print / Save PDF</button>'
-    +   '<button id="zs-print-close" style="background:transparent;color:#fff;'
-    +     'border:1.5px solid rgba(255,255,255,.5);padding:8px 14px;border-radius:7px;'
-    +     'font-weight:700;font-size:13px;cursor:pointer">&#x2715; Close</button>'
-    + '</div>';
+    + 'background:#0a2e5c;color:#fff;padding:10px 14px;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.35)';
 
-  // iframe — renders the print document in isolation
-  var frame = document.createElement('iframe');
-  frame.id = 'zs-print-frame';
-  frame.style.cssText = 'flex:1;width:100%;border:0;background:#fff';
+  var titleDiv = document.createElement('div');
+  titleDiv.style.cssText = 'font-weight:800;font-size:13px';
+  titleDiv.textContent = '\uD83D\uDCCB Print Preview \u2014 ' + zone.name;
+
+  var btnRow = document.createElement('div');
+  btnRow.style.cssText = 'display:flex;gap:8px';
+
+  var printBtn = document.createElement('button');
+  printBtn.style.cssText = 'background:#fff;color:#0a2e5c;border:0;padding:8px 16px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer';
+  printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
+
+  var closeBtn = document.createElement('button');
+  closeBtn.style.cssText = 'background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);padding:8px 14px;border-radius:7px;font-weight:700;font-size:13px;cursor:pointer';
+  closeBtn.textContent = '\u2715 Close';
+
+  btnRow.appendChild(printBtn);
+  btnRow.appendChild(closeBtn);
+  tb.appendChild(titleDiv);
+  tb.appendChild(btnRow);
+
+  // ── Preview iframe using srcdoc (no document.write, no cross-origin issues) ──
+  var previewFrame = document.createElement('iframe');
+  previewFrame.style.cssText = 'flex:1;width:100%;border:0;background:#fff';
+  previewFrame.setAttribute('srcdoc', html);  // srcdoc is the modern, reliable way
 
   ov.appendChild(tb);
-  ov.appendChild(frame);
+  ov.appendChild(previewFrame);
   document.body.appendChild(ov);
 
-  // Write the complete HTML document into the iframe
-  // Must use open/write/close so the iframe has a proper document with its own <style>
-  var fd = frame.contentDocument || frame.contentWindow.document;
-  fd.open();
-  fd.write(html);
-  fd.close();
-
+  // ── Close ──
   function closeOverlay() {
     var o = document.getElementById('zs-print-overlay');
     if (o) o.remove();
   }
+  closeBtn.onclick = closeOverlay;
 
-  document.getElementById('zs-print-close').onclick = closeOverlay;
+  // ── Print via hidden Blob-URL iframe (most reliable cross-browser method) ──
+  printBtn.onclick = function() {
+    printBtn.disabled = true;
+    printBtn.textContent = 'Preparing...';
 
-  document.getElementById('zs-print-go').onclick = function() {
-    // Give the iframe a moment to fully render before printing
-    setTimeout(function() {
+    try {
+      // First try: print directly from the visible preview iframe
+      previewFrame.contentWindow.focus();
+      previewFrame.contentWindow.print();
+      printBtn.disabled = false;
+      printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
+    } catch (e) {
+      // Fallback: create a Blob URL and load into a hidden iframe, then print
       try {
-        var fw = frame.contentWindow;
-        fw.focus();
-        fw.print();
-      } catch (e) {
-        // Fallback: hidden iframe (if preview frame is blocked)
+        var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        var blobUrl = URL.createObjectURL(blob);
         var pf = document.createElement('iframe');
-        pf.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:0;opacity:0';
+        pf.style.cssText = 'position:fixed;visibility:hidden;top:0;left:0;width:0;height:0;border:0';
+        pf.src = blobUrl;
         document.body.appendChild(pf);
-        var pd = pf.contentDocument || pf.contentWindow.document;
-        pd.open(); pd.write(html); pd.close();
-        setTimeout(function() {
-          try { pf.contentWindow.focus(); pf.contentWindow.print(); } catch(e2) {}
-          setTimeout(function() { if (pf.parentNode) pf.parentNode.removeChild(pf); }, 4000);
-        }, 500);
+        pf.onload = function() {
+          try {
+            pf.contentWindow.focus();
+            pf.contentWindow.print();
+          } catch (e2) { /* silent */ }
+          setTimeout(function() {
+            if (pf.parentNode) pf.parentNode.removeChild(pf);
+            URL.revokeObjectURL(blobUrl);
+          }, 5000);
+          printBtn.disabled = false;
+          printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
+        };
+      } catch (e3) {
+        printBtn.disabled = false;
+        printBtn.textContent = '\uD83D\uDDB8\uFE0F Print / Save PDF';
+        alert('Print not available on this browser. Please use the Download button instead.');
       }
-    }, 300);
+    }
   };
 }
 </script>
