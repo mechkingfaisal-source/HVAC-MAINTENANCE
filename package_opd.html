@@ -483,7 +483,13 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-lvl-tabs::-webkit-scrollbar{display:none}
 .zs-ltab{padding:6px 11px;border-radius:8px;border:1.5px solid #d1d8e0;background:#fff;font-size:10px;font-weight:700;color:#4a5568;cursor:pointer;white-space:nowrap;font-family:Arial,sans-serif;transition:all .18s}
 .zs-ltab.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c}
-.zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px}
+.zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:#0a2e5c66 #e8edf3}
+.zs-table-wrap::-webkit-scrollbar{height:9px;width:9px}
+.zs-table-wrap::-webkit-scrollbar-track{background:#e8edf3;border-radius:6px;margin:2px}
+.zs-table-wrap::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#0a2e5c,#1a5fae);border-radius:6px;border:2px solid #e8edf3}
+.zs-table-wrap::-webkit-scrollbar-thumb:hover{background:#0a2e5c}
+.zs-table-wrap::-webkit-scrollbar-corner{background:#e8edf3}
+.zs-scroll-hint{display:flex;align-items:center;gap:5px;font-size:10px;color:#1a5fae;font-weight:700;background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:5px 10px;margin-bottom:6px}
 .zs-table{width:100%;border-collapse:collapse;font-size:11px;min-width:400px}
 .zs-table th{background:#0a2e5c;color:#fff;padding:7px 6px;text-align:center;font-size:10px;font-weight:700;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap}
 .zs-table th:first-child{text-align:left;min-width:90px;position:sticky;left:0;background:#0a2e5c;z-index:2}
@@ -585,6 +591,10 @@ body{background:#f0f2f5;color:#0d1b2a}
         <button class="zs-btn fill" onclick="zsClearAll()">↺ Clear All</button>
         <button class="zs-btn print" onclick="zsOpenPrint()">🖨️ Print</button>
         <button class="zs-btn save" onclick="zsSaveAll()">💾 Save All</button>
+      </div>
+      <div class="zs-scroll-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5fae" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        Swipe left/right to see the full sheet — use the blue scrollbar below the table
       </div>
       <div class="zs-table-wrap">
         <table class="zs-table" id="zs-table"></table>
@@ -1272,7 +1282,7 @@ function zsRenderTable(){
       return '<th style="min-width:52px"><div>'+c.lbl+'</div>'
         +(c.unit?'<div style="font-size:8px;opacity:.65">('+c.unit+')</div>':'')+'</th>';
     }).join('')
-    +'<th style="min-width:120px;background:#1a3d6e">📝 Remarks</th>'
+    +'<th style="min-width:140px;background:#1a3d6e;position:sticky;right:0;z-index:3">📝 Remarks</th>'
     +'</tr></thead>';
 
   var tbody='<tbody>'+units.map(function(u){
@@ -1289,7 +1299,7 @@ function zsRenderTable(){
         var lbl=v===true?'✓':v===false?'✗':'—';
         return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+'\',\''+c.id+'\',this)">'+lbl+'</button></td>';
       }).join('')
-      +'<td><input style="width:110px;border:1.5px solid #d1d8e0;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+'\',this.value)"></td>'
+      +'<td style="position:sticky;right:0;background:#f0f6ff;border-left:2px solid #b5d4f4;z-index:1"><input style="width:130px;border:1.5px solid #b5d4f4;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+'\',this.value)"></td>'
       +'</tr>';
   }).join('')+'</tbody>';
 
