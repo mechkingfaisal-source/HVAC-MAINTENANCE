@@ -509,7 +509,13 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-btn.fill{background:#e8f0ff;color:#1a5fae;border-color:#b5d0ff}
 .zs-btn.print{background:#fff3e0;color:#a05c00;border-color:#fcd34d}
 .zs-btn.save{background:#e8f8f0;color:#1a7a4a;border-color:#a3d9be}
-.zs-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #e2e8f0}
+.zs-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px;border:1px solid #e2e8f0;scrollbar-width:thin;scrollbar-color:#0a2e5c66 #e8edf3}
+.zs-table-wrap::-webkit-scrollbar{height:9px;width:9px}
+.zs-table-wrap::-webkit-scrollbar-track{background:#e8edf3;border-radius:6px;margin:2px}
+.zs-table-wrap::-webkit-scrollbar-thumb{background:linear-gradient(135deg,#0a2e5c,#1a5fae);border-radius:6px;border:2px solid #e8edf3}
+.zs-table-wrap::-webkit-scrollbar-thumb:hover{background:#0a2e5c}
+.zs-table-wrap::-webkit-scrollbar-corner{background:#e8edf3}
+.zs-scroll-hint{display:flex;align-items:center;gap:5px;font-size:10px;color:#1a5fae;font-weight:700;background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:5px 10px;margin-bottom:6px}
 .zs-table{width:100%;border-collapse:collapse;font-size:11px;min-width:500px}
 .zs-table thead tr{background:#0a2e5c;color:#fff}
 .zs-table th{padding:8px 6px;text-align:center;font-size:9px;font-weight:700;letter-spacing:.03em;border-right:1px solid rgba(255,255,255,.15);white-space:nowrap;line-height:1.3}
@@ -626,6 +632,10 @@ body{background:#f0f2f5;color:#0d1b2a}
         <button class="zs-btn fill" onclick="zsClearAll()">↺ Clear All</button>
         <button class="zs-btn print" onclick="zsOpenPrint()">🖨️ Print</button>
         <button class="zs-btn save" onclick="zsSaveAll()">💾 Save All</button>
+      </div>
+      <div class="zs-scroll-hint">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a5fae" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        Swipe left/right to see the full sheet — use the blue scrollbar below the table
       </div>
       <div class="zs-table-wrap">
         <table class="zs-table" id="zs-table"></table>
@@ -1472,9 +1482,11 @@ function zsRenderTable(){
     checks.map(function(c){
       return '<th style="min-width:55px"><div>'+c.lbl+'</div><div style="font-size:8px;opacity:.65;font-weight:400;margin-top:1px">'+c.sub+'</div>'+(c.unit?'<div style="font-size:8px;opacity:.65">('+c.unit+')</div>':'')+'</th>';
     }).join('')+
+    '<th style="min-width:140px;background:#1a3d6e;position:sticky;right:0;z-index:3">📝 Remarks</th>'+
   '</tr></thead>';
 
   var tbody = '<tbody>'+units.map(function(u){
+    var remarksVal = (zsData[u.id]&&zsData[u.id]._remarks)||'';
     return '<tr>'+
       '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+zone.en+'</div></td>'+
       checks.map(function(c){
@@ -1487,6 +1499,7 @@ function zsRenderTable(){
         var lbl = v===true?'✓':v===false?'✗':'—';
         return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+'\',\''+c.id+'\',this)">'+lbl+'</button></td>';
       }).join('')+
+      '<td style="position:sticky;right:0;background:#f0f6ff;border-left:2px solid #b5d4f4;z-index:1"><input style="width:130px;border:1.5px solid #b5d4f4;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+'\',this.value)"></td>'+
     '</tr>';
   }).join('')+'</tbody>';
 
@@ -1505,6 +1518,11 @@ function zsTog(uid, cid, btn){
 function zsSetNum(uid, cid, val){
   if(!zsData[uid]) zsData[uid]={};
   zsData[uid][cid] = val;
+}
+
+function zsSetRemarks(uid, val){
+  if(!zsData[uid]) zsData[uid]={};
+  zsData[uid]._remarks = val;
 }
 
 function zsCheckAll(){
@@ -1582,7 +1600,7 @@ function zsOpenPrint(){
 
   var thCells = checks.map(function(c){
     return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
-  }).join('');
+  }).join('')+'<th style="min-width:100px">📝 Remarks</th>';
 
   var rows = units.map(function(u, ri){
     var data = zsData[u.id] || {};
@@ -1597,11 +1615,13 @@ function zsOpenPrint(){
       var v = data[c.id];
       return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
     }).join('');
+    var remarks = data._remarks || '';
     return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'+
       '<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'+
       cells+
       '<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'+
       '<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'+
+      '<td style="font-size:10px;color:#4a5568;text-align:left;padding:4px 6px">'+remarks+'</td>'+
     '</tr>';
   }).join('');
 
