@@ -352,10 +352,6 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
       <div class="ztabs" id="qr-sub-tabs"></div>
       <div class="qgrid" id="qr-grid"></div>
     </div>
-  </div>
-</div>
-
-
     <div class="pg" id="pg-zonesheet">
       <div class="info" style="display:flex;align-items:center;gap:7px;font-size:11px">
         <span style="font-size:16px">📋</span>
@@ -402,16 +398,17 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
         <table class="zs-table" id="zs-table"></table>
       </div>
     </div>
-
-    <div class="mbg" id="modal" style="display:none" onclick="if(event.target===this)closeM()">
-  <div class="mbox">
-    <h3>&#128232; Maintenance Report — Supervisor</h3>
-    <div class="mmsg" id="modal-msg"></div>
-    <div class="mbtns">
-      <button class="mb" onclick="closeM()">Close</button>
-      <button class="mb" onclick="copyR()">&#128203; Copy</button>
-      <button class="mb" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="if(window._curRec)quickPrint(window._curRec)">🖨️ Print</button>
-      <button class="mb" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="if(window._curRec)shareReport(window._curRec)">📤 PDF</button>
+  </div>
+  <div class="mbg" id="modal" style="display:none" onclick="if(event.target===this)closeM()">
+    <div class="mbox">
+      <h3>&#128232; Maintenance Report — Supervisor</h3>
+      <div class="mmsg" id="modal-msg"></div>
+      <div class="mbtns">
+        <button class="mb" onclick="closeM()">Close</button>
+        <button class="mb" onclick="copyR()">&#128203; Copy</button>
+        <button class="mb" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="if(window._curRec)quickPrint(window._curRec)">🖨️ Print</button>
+        <button class="mb" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="if(window._curRec)shareReport(window._curRec)">📤 PDF</button>
+      </div>
     </div>
   </div>
 </div>
