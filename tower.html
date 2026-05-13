@@ -1104,12 +1104,24 @@ function renderRecs(){
  <button class="rbtn" style="background:#0a2e5c;color:#fff;border-color:#0a2e5c" onclick="openSigModal(records[${i}])">✍️ Sign & Print</button>
  <button class="rbtn" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="printR(records[${i}])">🖨️</button>
  <button class="rbtn" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="shareAsPDF(records[${i}])">📤 PDF</button>
+ <button class="rbtn" style="background:#fef0f0;color:#c0392b;border-color:#f5bfc0" onclick="deleteRec(${i})">🗑️</button>
  </div>
  ${r.photos&&r.photos.length?`<div style="display:flex;gap:5px;margin-top:6px;padding:0 2px;overflow-x:auto">
  ${r.photos.slice(0,4).map((p,pi)=>`<img src="${p.data}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:.5px solid #e2e8f0;flex-shrink:0">`).join('')}
  ${r.photos.length>4?`<div style="width:48px;height:48px;background:#f4f7fb;border-radius:6px;border:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8a94a6;flex-shrink:0">+${r.photos.length-4}</div>`:''}
  </div>`:''}
  </div>`).join('');
+}
+
+function deleteRec(i){
+  const r=records[i];
+  if(!confirm(`🗑️ Delete this record?\n\n${r.unit.name} — ${LVL_EN[r.lvl]}\n📅 ${r.date}\n👷 ${r.tech}\n\nThis cannot be undone.`))return;
+  if(fbConnected&&r._fbId){
+    db.collection(COL).doc(r._fbId).delete().catch(e=>console.warn('Firebase delete error:',e));
+  }
+  records.splice(i,1);
+  try{localStorage.setItem('hvac_records',JSON.stringify(records.slice(0,200)));}catch(e){}
+  renderRecs();
 }
 
 // =====================================================
