@@ -1023,6 +1023,7 @@ function renderRecs(){
         ${r._fbId?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️</span>':'<span class="rp" style="background:#fff3e0;color:#a05c00">⏳</span>'}
         <button class="rbtn" onclick="quickPrint(records[${i}])">🖨️</button>
         <button class="rbtn" style="background:#e8f8f0;color:#1a7a4a;border-color:#a3d9be" onclick="shareReport(records[${i}])">📤</button>
+        <button class="rbtn" style="background:#fef0f0;color:#c0392b;border-color:#f5bfc0" onclick="deleteRec(${i})">🗑️</button>
       </div>
     </div>`).join('');
 }
@@ -1598,8 +1599,20 @@ function renderRecs(){
       '<button class="rbtn" onclick="showModal(records['+i+'])">Send ↗</button>'+
       '<button class="rbtn" style="background:#1a5fae;color:#fff;border-color:#1a5fae" onclick="printReport(records['+i+'])">🖨️</button>'+
       '<button class="rbtn" style="background:#1a7a4a;color:#fff;border-color:#1a7a4a" onclick="shareAsPDF(records['+i+'])">📤 PDF</button>'+
+      '<button class="rbtn" style="background:#fef0f0;color:#c0392b;border-color:#f5bfc0" onclick="deleteRec('+i+')">🗑️</button>'+
       '</div></div>';
   }).join('');
+}
+
+function deleteRec(i){
+  const r=records[i];
+  if(!confirm(`🗑️ Delete this record?\n\n${r.unit.name} — ${LVL_EN[r.lvl]}\n📅 ${r.date}\n👷 ${r.tech}\n\nThis cannot be undone.`))return;
+  if(fbConnected&&r._fbId){
+    db.collection(COL).doc(r._fbId).delete().catch(e=>console.warn('Firebase delete error:',e));
+  }
+  records.splice(i,1);
+  try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,500)));}catch(e){}
+  renderRecs();
 }
 
 //---
