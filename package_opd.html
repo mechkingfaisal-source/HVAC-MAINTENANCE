@@ -483,6 +483,17 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-lvl-tabs::-webkit-scrollbar{display:none}
 .zs-ltab{padding:6px 11px;border-radius:8px;border:1.5px solid #d1d8e0;background:#fff;font-size:10px;font-weight:700;color:#4a5568;cursor:pointer;white-space:nowrap;font-family:Arial,sans-serif;transition:all .18s}
 .zs-ltab.active{background:#0a2e5c;color:#fff;border-color:#0a2e5c}
+/* ── Maintenance level tabs — each level gets its own color ── */
+#zs-lvl-tabs .zs-ltab[onclick*="daily"]{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+#zs-lvl-tabs .zs-ltab[onclick*="daily"].active{background:#e67e22;color:#fff;border-color:#e67e22}
+#zs-lvl-tabs .zs-ltab[onclick*="weekly"]{border-color:#27ae60;color:#1a7a4a;background:#f0fff5}
+#zs-lvl-tabs .zs-ltab[onclick*="weekly"].active{background:#27ae60;color:#fff;border-color:#27ae60}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"]{border-color:#2980b9;color:#1a5fae;background:#f0f8ff}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"].active{background:#2980b9;color:#fff;border-color:#2980b9}
+#zs-lvl-tabs .zs-ltab[onclick*="halfyearly"]{border-color:#8e44ad;color:#8e44ad;background:#faf0ff}
+#zs-lvl-tabs .zs-ltab[onclick*="halfyearly"].active{background:#8e44ad;color:#fff;border-color:#8e44ad}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"]{border-color:#c0392b;color:#c0392b;background:#fff0f0}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"].active{background:#c0392b;color:#fff;border-color:#c0392b}
 .zs-table-wrap{overflow-x:auto;border-radius:10px;border:1.5px solid #d1d8e0;margin-bottom:12px;scrollbar-width:thin;scrollbar-color:#0a2e5c66 #e8edf3}
 .zs-table-wrap::-webkit-scrollbar{height:9px;width:9px}
 .zs-table-wrap::-webkit-scrollbar-track{background:#e8edf3;border-radius:6px;margin:2px}
@@ -505,7 +516,10 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-btn{flex:1;min-width:80px;padding:10px;border-radius:9px;border:none;font-size:12px;font-weight:700;cursor:pointer;font-family:Arial,sans-serif;transition:all .18s}
 .zs-btn.save{background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff}
 .zs-btn.print{background:#0a2e5c;color:#fff}
-.zs-btn.fill{background:#fff;color:#0a2e5c;border:1.5px solid #0a2e5c}
+.zs-btn.fill{background:#e8f0ff;color:#1a5fae;border-color:#b5d0ff}
+/* ── Select All / Clear All distinct colors ── */
+.zs-btn.fill:first-child{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;border:none;box-shadow:0 2px 6px rgba(39,174,96,.35)}
+.zs-btn.fill:nth-child(2){background:linear-gradient(135deg,#e67e22,#f39c12);color:#fff;border:none;box-shadow:0 2px 6px rgba(230,126,34,.35)}
 .zs-legend{display:flex;gap:8px;font-size:10px;color:#8a94a6;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .zs-legend span{display:flex;align-items:center;gap:3px}
 /* ── end Zone Sheet ── */
