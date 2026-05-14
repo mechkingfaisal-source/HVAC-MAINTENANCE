@@ -183,6 +183,53 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-btn.fill{background:#fff;color:#0a2e5c;border:1.5px solid #0a2e5c}
 .zs-legend{display:flex;gap:8px;font-size:10px;color:#8a94a6;align-items:center;margin-bottom:8px;flex-wrap:wrap}
 .zs-legend span{display:flex;align-items:center;gap:3px}
+/* ── Maintenance level tabs — each level gets its own color ── */
+#zs-lvl-tabs .zs-ltab[onclick*="daily"]{border-color:#e67e22;color:#e67e22;background:#fff8f0}
+#zs-lvl-tabs .zs-ltab[onclick*="daily"].active{background:#e67e22;color:#fff;border-color:#e67e22}
+#zs-lvl-tabs .zs-ltab[onclick*="weekly"]{border-color:#27ae60;color:#1a7a4a;background:#f0fff5}
+#zs-lvl-tabs .zs-ltab[onclick*="weekly"].active{background:#27ae60;color:#fff;border-color:#27ae60}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"]{border-color:#2980b9;color:#1a5fae;background:#f0f8ff}
+#zs-lvl-tabs .zs-ltab[onclick*="monthly"].active{background:#2980b9;color:#fff;border-color:#2980b9}
+#zs-lvl-tabs .zs-ltab[onclick*="halfyearly"]{border-color:#8e44ad;color:#8e44ad;background:#faf0ff}
+#zs-lvl-tabs .zs-ltab[onclick*="halfyearly"].active{background:#8e44ad;color:#fff;border-color:#8e44ad}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"]{border-color:#c0392b;color:#c0392b;background:#fff0f0}
+#zs-lvl-tabs .zs-ltab[onclick*="annually"].active{background:#c0392b;color:#fff;border-color:#c0392b}
+/* ── Zone button colors — each zone gets its own accent ── */
+.zs-zbtn:nth-child(1){border-color:#0a2e5c;color:#0a2e5c;background:#f0f6ff}
+.zs-zbtn:nth-child(1) .zb-icon{background:#e0eaff}
+.zs-zbtn:nth-child(1).active{background:#0a2e5c;border-color:#0a2e5c}
+.zs-zbtn:nth-child(2){border-color:#1a5fae;color:#1a5fae;background:#e8f0ff}
+.zs-zbtn:nth-child(2) .zb-icon{background:#d0e4ff}
+.zs-zbtn:nth-child(2).active{background:#1a5fae;border-color:#1a5fae}
+.zs-zbtn:nth-child(3){border-color:#0e7490;color:#0e7490;background:#ecfeff}
+.zs-zbtn:nth-child(3) .zb-icon{background:#cffafe}
+.zs-zbtn:nth-child(3).active{background:#0e7490;border-color:#0e7490}
+.zs-zbtn:nth-child(4){border-color:#15803d;color:#15803d;background:#f0fdf4}
+.zs-zbtn:nth-child(4) .zb-icon{background:#dcfce7}
+.zs-zbtn:nth-child(4).active{background:#15803d;border-color:#15803d}
+.zs-zbtn:nth-child(5){border-color:#b45309;color:#b45309;background:#fffbeb}
+.zs-zbtn:nth-child(5) .zb-icon{background:#fef3c7}
+.zs-zbtn:nth-child(5).active{background:#b45309;border-color:#b45309}
+.zs-zbtn:nth-child(6){border-color:#7c3aed;color:#7c3aed;background:#faf5ff}
+.zs-zbtn:nth-child(6) .zb-icon{background:#ede9fe}
+.zs-zbtn:nth-child(6).active{background:#7c3aed;border-color:#7c3aed}
+.zs-zbtn:nth-child(7){border-color:#be185d;color:#be185d;background:#fdf2f8}
+.zs-zbtn:nth-child(7) .zb-icon{background:#fce7f3}
+.zs-zbtn:nth-child(7).active{background:#be185d;border-color:#be185d}
+.zs-zbtn:nth-child(8){border-color:#c0392b;color:#c0392b;background:#fff0f0}
+.zs-zbtn:nth-child(8) .zb-icon{background:#fde8e8}
+.zs-zbtn:nth-child(8).active{background:#c0392b;border-color:#c0392b}
+.zs-zbtn:nth-child(9){border-color:#0f766e;color:#0f766e;background:#f0fdfa}
+.zs-zbtn:nth-child(9) .zb-icon{background:#ccfbf1}
+.zs-zbtn:nth-child(9).active{background:#0f766e;border-color:#0f766e}
+.zs-zbtn:nth-child(10){border-color:#92400e;color:#92400e;background:#fdf6ec}
+.zs-zbtn:nth-child(10) .zb-icon{background:#fde8c8}
+.zs-zbtn:nth-child(10).active{background:#92400e;border-color:#92400e}
+/* Active zone button text colors */
+.zs-zbtn.active .zb-id,.zs-zbtn.active .zb-en{color:#fff}
+/* ── Select All / Clear All distinct colors ── */
+.zs-btn.fill:first-child{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;border:none;box-shadow:0 2px 6px rgba(39,174,96,.35)}
+.zs-btn.fill:nth-child(2){background:linear-gradient(135deg,#e67e22,#f39c12);color:#fff;border:none;box-shadow:0 2px 6px rgba(230,126,34,.35)}
 /* ── end Zone Sheet ── */
 /* Prominent scrollbar on zone table */
 .zs-table-wrap{scrollbar-width:thin;scrollbar-color:#0a2e5c66 #e8edf3}
