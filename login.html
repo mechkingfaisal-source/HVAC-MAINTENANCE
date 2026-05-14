@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Staff Login Portal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:       #080b0f;
+      --panel:    #0f1318;
+      --border:   #1a2030;
+      --accent:   #00d4ff;
+      --glow-clr: rgba(0,212,255,.30);
+      --text:     #c8d6e5;
+      --muted:    #3d4f66;
+      --success:  #00e676;
+      --danger:   #ff3d57;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: 'Rajdhani', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+      background-size: 44px 44px;
+      animation: gridDrift 22s linear infinite;
+      pointer-events: none;
+    }
+    @keyframes gridDrift { to { background-position: 0 44px; } }
+
+    .corner {
+      position: fixed; width: 70px; height: 70px;
+      pointer-events: none;
+      border-color: var(--accent);
+      transition: border-color .5s;
+    }
+    .corner--tl { top:18px; left:18px;  border-top:1.5px solid; border-left:1.5px solid; }
+    .corner--tr { top:18px; right:18px; border-top:1.5px solid; border-right:1.5px solid; }
+    .corner--bl { bottom:18px; left:18px;  border-bottom:1.5px solid; border-left:1.5px solid; }
+    .corner--br { bottom:18px; right:18px; border-bottom:1.5px solid; border-right:1.5px solid; }
+
+    .card {
+      position: relative; width: 440px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      animation: cardIn .55s cubic-bezier(.16,1,.3,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform: translateY(28px) scale(.97); }
+      to   { opacity:1; transform: none; }
+    }
+    .card::after {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 2px,rgba(0,0,0,.06) 4px);
+      pointer-events: none; z-index: 0;
+    }
+
+    .card-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #00d4ff, #f5a623);
+      background-size: 200% 100%;
+      animation: barShift 3s ease infinite alternate;
+    }
+    @keyframes barShift { from{background-position:0%} to{background-position:100%} }
+
+    .card-inner { padding: 36px 42px 40px; position: relative; z-index: 1; }
+
+    /* ── Header ── */
+    .logo-area { text-align: center; margin-bottom: 28px; }
+    .logo-icon {
+      width:52px; height:52px; margin:0 auto 12px;
+      border:1.5px solid var(--accent);
+      display:flex; align-items:center; justify-content:center;
+      position:relative; transition: border-color .4s, box-shadow .4s;
+    }
+    .logo-icon svg { width:24px; height:24px; fill:var(--accent); transition:fill .4s; }
+    .logo-icon::before {
+      content:''; position:absolute; top:-5px; left:-5px;
+      width:8px; height:8px;
+      border-top:1.5px solid #f5a623; border-left:1.5px solid #f5a623;
+    }
+    .logo-icon::after {
+      content:''; position:absolute; bottom:-5px; right:-5px;
+      width:8px; height:8px;
+      border-bottom:1.5px solid #f5a623; border-right:1.5px solid #f5a623;
+    }
+    .sys-label {
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      letter-spacing:4px; color:var(--accent); text-transform:uppercase;
+      margin-bottom:4px; transition:color .4s;
+    }
+    .sys-title { font-size:24px; font-weight:700; color:#fff; letter-spacing:2px; }
+    .sys-sub {
+      margin-top:5px; font-size:10px; color:var(--muted);
+      font-family:'Share Tech Mono',monospace; letter-spacing:1px;
+    }
+
+    /* ══ ROLE SELECTOR ══ */
+    .role-selector {
+      display:grid; grid-template-columns:1fr 1fr;
+      border:1px solid var(--border); overflow:hidden; margin-bottom:28px;
+    }
+    .role-btn {
+      position:relative; padding:14px 10px;
+      background:transparent; border:none; cursor:pointer;
+      font-family:'Rajdhani',sans-serif; font-size:13px;
+      font-weight:700; letter-spacing:3px; text-transform:uppercase;
+      color:var(--muted);
+      display:flex; flex-direction:column; align-items:center; gap:6px;
+      transition:color .3s, background .3s; overflow:hidden;
+    }
+    .role-btn:first-child { border-right:1px solid var(--border); }
+    .role-btn::before {
+      content:''; position:absolute; inset:0;
+      transform:scaleX(0); transform-origin:left;
+      transition:transform .35s cubic-bezier(.4,0,.2,1);
+    }
+    .role-btn.tech::before  { background:rgba(0,212,255,.08); }
+    .role-btn.eng::before   { background:rgba(245,166,35,.08); }
+    .role-btn.active::before { transform:scaleX(1); }
+    .role-btn span { position:relative; z-index:1; }
+    .role-btn svg {
+      position:relative; z-index:1;
+      width:22px; height:22px; stroke:currentColor; fill:none;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+    }
+    .role-btn.tech.active { color:#00d4ff; }
+    .role-btn.eng.active  { color:#f5a623; }
+    .role-line {
+      position:absolute; bottom:0; left:0; right:0; height:2px;
+      transform:scaleX(0); transition:transform .35s cubic-bezier(.4,0,.2,1);
+    }
+    .role-btn.tech .role-line { background:#00d4ff; }
+    .role-btn.eng  .role-line { background:#f5a623; }
+    .role-btn.active .role-line { transform:scaleX(1); }
+    .role-tag {
+      font-size:8px; letter-spacing:2px;
+      font-family:'Share Tech Mono',monospace; opacity:.6;
+    }
+
+    /* ── Divider ── */
+    .divider { display:flex; align-items:center; gap:10px; margin-bottom:22px; }
+    .divider span { flex:1; height:1px; background:var(--border); }
+    .divider em {
+      font-style:normal; font-size:9px;
+      font-family:'Share Tech Mono',monospace; color:var(--muted); letter-spacing:2px;
+    }
+
+    /* ── Fields ── */
+    .field { margin-bottom:18px; }
+    .field label {
+      display:block; font-size:10px;
+      font-family:'Share Tech Mono',monospace; letter-spacing:2px;
+      color:var(--accent); margin-bottom:7px;
+      text-transform:uppercase; transition:color .4s;
+    }
+    .field-wrap { position:relative; display:flex; align-items:center; }
+    .field-icon {
+      position:absolute; left:13px;
+      display:flex; align-items:center; pointer-events:none;
+    }
+    .field-icon svg {
+      width:15px; height:15px; stroke:var(--muted); fill:none;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round;
+      transition:stroke .3s;
+    }
+    .field-wrap:focus-within .field-icon svg { stroke:var(--accent); }
+
+    input {
+      width:100%; background:rgba(255,255,255,.025);
+      border:1px solid var(--border); color:var(--text);
+      font-family:'Share Tech Mono',monospace; font-size:13px; letter-spacing:1px;
+      padding:12px 12px 12px 42px; outline:none;
+      transition:border-color .25s, box-shadow .25s, background .25s;
+    }
+    input:focus {
+      border-color:var(--accent);
+      background:rgba(255,255,255,.04);
+      box-shadow:0 0 0 3px var(--glow-clr);
+    }
+    input::placeholder { color:var(--muted); font-size:12px; }
+
+    .eye-btn {
+      position:absolute; right:11px; background:none; border:none;
+      cursor:pointer; padding:4px; color:var(--muted);
+      display:flex; align-items:center; transition:color .2s;
+    }
+    .eye-btn:hover { color:var(--accent); }
+    .eye-btn svg { width:15px; height:15px; stroke:currentColor; fill:none;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* ── Messages ── */
+    .msg {
+      padding:11px 13px; margin-bottom:18px;
+      font-family:'Share Tech Mono',monospace; font-size:11px; letter-spacing:1px;
+      display:none; animation:msgIn .2s ease both;
+    }
+    @keyframes msgIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1} }
+    .msg.error   { background:rgba(255,61,87,.07);  border-left:2px solid var(--danger);  color:var(--danger); }
+    .msg.success { background:rgba(0,230,118,.07);  border-left:2px solid var(--success); color:var(--success); }
+    .msg.show { display:block; }
+
+    /* ── Button ── */
+    .btn {
+      width:100%; padding:14px; background:transparent;
+      border:1px solid var(--accent); color:var(--accent);
+      font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700;
+      letter-spacing:4px; text-transform:uppercase;
+      cursor:pointer; position:relative; overflow:hidden;
+      transition:color .3s, box-shadow .3s, border-color .4s;
+      margin-top:6px;
+    }
+    .btn::before {
+      content:''; position:absolute; inset:0; background:var(--accent);
+      transform:translateX(-101%);
+      transition:transform .3s cubic-bezier(.4,0,.2,1), background .4s; z-index:0;
+    }
+    .btn:hover::before, .btn:focus::before { transform:translateX(0); }
+    .btn:hover, .btn:focus { color:#000; box-shadow:0 0 22px var(--glow-clr); }
+    .btn span { position:relative; z-index:1; }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
+
+    .spinner {
+      display:inline-block; width:12px; height:12px;
+      border:2px solid rgba(255,255,255,.25);
+      border-top-color:currentColor; border-radius:50%;
+      animation:spin .7s linear infinite;
+      vertical-align:middle; margin-right:8px;
+    }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── Footer ── */
+    .card-footer {
+      text-align:center; padding:14px 42px 22px;
+      border-top:1px solid var(--border);
+      font-family:'Share Tech Mono',monospace; font-size:9px;
+      color:var(--muted); letter-spacing:1px; position:relative; z-index:1;
+    }
+    .dot {
+      display:inline-block; width:5px; height:5px;
+      background:var(--success); border-radius:50%; margin-right:6px;
+      animation:blink 2s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+
+    @media(max-width:480px){
+      .card { width:94vw; }
+      .card-inner { padding:28px 22px 34px; }
+      .card-footer { padding:14px 22px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="corner corner--tl"></div>
+  <div class="corner corner--tr"></div>
+  <div class="corner corner--bl"></div>
+  <div class="corner corner--br"></div>
+
+  <div class="card">
+    <div class="card-bar"></div>
+    <div class="card-inner">
+
+      <!-- Header -->
+      <div class="logo-area">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div class="sys-label" id="sysLabel">Maintenance Portal</div>
+        <div class="sys-title">STAFF LOGIN</div>
+        <div class="sys-sub">SELECT YOUR ROLE TO CONTINUE</div>
+      </div>
+
+      <!-- Role Selector -->
+      <div class="role-selector">
+        <button class="role-btn tech active" id="btnTech" onclick="setRole('tech')">
+          <svg viewBox="0 0 24 24">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+          <span>Technician</span>
+          <span class="role-tag">TECH</span>
+          <div class="role-line"></div>
+        </button>
+        <button class="role-btn eng" id="btnEng" onclick="setRole('engineer')">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+          </svg>
+          <span>Engineer</span>
+          <span class="role-tag">ENG</span>
+          <div class="role-line"></div>
+        </button>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"><span></span><em id="divLabel">TECHNICIAN CREDENTIALS</em><span></span></div>
+
+      <!-- Message -->
+      <div id="msg" class="msg"></div>
+
+      <!-- Form -->
+      <form onsubmit="return false;">
+        <div class="field">
+          <label for="iqama">Iqama Number</label>
+          <div class="field-wrap">
+            <span class="field-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="13" y2="14"/></svg>
+            </span>
+            <input type="text" id="iqama" placeholder="Enter your Iqama number"
+              autocomplete="off" inputmode="numeric" maxlength="10" required />
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="filenum">File Number</label>
+          <div class="field-wrap">
+            <span class="field-icon">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="filenum" placeholder="Enter your File number"
+              autocomplete="off" required />
+            <button type="button" class="eye-btn" onclick="togglePwd()">
+              <svg id="eyeIcon" viewBox="0 0 24 24">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="loginBtn" onclick="doLogin()">
+          <span id="btnText">ACCESS SYSTEM</span>
+        </button>
+      </form>
+    </div>
+
+    <div class="card-footer">
+      <span class="dot"></span>
+      SYSTEM ONLINE &nbsp;|&nbsp;
+      <span id="roleIndicator">TECHNICIAN MODE</span>
+    </div>
+  </div>
+
+  <script>
+    // ╔══════════════════════════════════════════════════════════════════╗
+    // ║               CREDENTIALS DATABASE                              ║
+    // ║                                                                  ║
+    // ║  Run convert_excel.py → paste output into the arrays below.     ║
+    // ║  Each entry needs: iqama, file, and name fields.                ║
+    // ╚══════════════════════════════════════════════════════════════════╝
+
+    const TECHNICIANS = [
+      // ── PASTE TECHNICIAN DATA HERE ───────────────────────────────────
+      { iqama: "2123456789", file: "F001", name: "Ahmed Al-Rashidi" },
+      { iqama: "2987654321", file: "F002", name: "Mohammed Al-Zahrani" },
+      { iqama: "2555666777", file: "F003", name: "Khalid Al-Ghamdi" },
+      // ─────────────────────────────────────────────────────────────────
+    ];
+
+    const ENGINEERS = [
+      // ── PASTE ENGINEER DATA HERE ─────────────────────────────────────
+      { iqama: "1023456789", file: "E001", name: "Eng. Faisal Al-Otaibi" },
+      { iqama: "1087654321", file: "E002", name: "Eng. Omar Al-Shehri" },
+      // ─────────────────────────────────────────────────────────────────
+    ];
+
+    // ── Redirect destination per role ───────────────────────────────────
+    const REDIRECT = {
+      tech:     "index.html",       // ← Technician page
+      engineer: "engineer.html",    // ← Engineer page  (change if needed)
+    };
+
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_MS   = 2 * 60 * 1000;
+
+    // ════════════════════════════════════════════════════════════════════
+    let currentRole = 'tech';
+    let attempts    = 0;
+    let lockedUntil = null;
+
+    const COLORS = {
+      tech:     { accent: '#00d4ff', glow: 'rgba(0,212,255,.30)' },
+      engineer: { accent: '#f5a623', glow: 'rgba(245,166,35,.30)' },
+    };
+
+    function setRole(role) {
+      currentRole = role;
+      attempts    = 0;
+      lockedUntil = null;
+
+      const { accent, glow } = COLORS[role];
+      document.documentElement.style.setProperty('--accent',   accent);
+      document.documentElement.style.setProperty('--glow-clr', glow);
+
+      const isTech = role === 'tech';
+      document.getElementById('btnTech').classList.toggle('active', isTech);
+      document.getElementById('btnEng' ).classList.toggle('active', !isTech);
+      document.getElementById('sysLabel').textContent      = isTech ? 'Maintenance Portal'       : 'Engineering Portal';
+      document.getElementById('divLabel').textContent      = isTech ? 'TECHNICIAN CREDENTIALS'   : 'ENGINEER CREDENTIALS';
+      document.getElementById('roleIndicator').textContent = isTech ? 'TECHNICIAN MODE'           : 'ENGINEER MODE';
+      document.getElementById('iqama').value   = '';
+      document.getElementById('filenum').value = '';
+      hideMsg();
+    }
+
+    function showMsg(txt, type) {
+      const el = document.getElementById('msg');
+      el.textContent = txt; el.className = 'msg show ' + type;
+    }
+    function hideMsg() { document.getElementById('msg').className = 'msg'; }
+
+    function togglePwd() {
+      const inp  = document.getElementById('filenum');
+      const icon = document.getElementById('eyeIcon');
+      if (inp.type === 'password') {
+        inp.type = 'text';
+        icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+      } else {
+        inp.type = 'password';
+        icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+      }
+    }
+
+    function setLoading(on) {
+      const btn = document.getElementById('loginBtn');
+      const txt = document.getElementById('btnText');
+      btn.disabled  = on;
+      txt.innerHTML = on ? '<span class="spinner"></span>VERIFYING...' : 'ACCESS SYSTEM';
+    }
+
+    function doLogin() {
+      if (lockedUntil && Date.now() < lockedUntil) {
+        const secs = Math.ceil((lockedUntil - Date.now()) / 1000);
+        showMsg(`⚠ Locked. Try again in ${secs}s.`, 'error'); return;
+      }
+      const iqama   = document.getElementById('iqama').value.trim();
+      const filenum = document.getElementById('filenum').value.trim();
+      if (!iqama || !filenum) { showMsg('⚠ Please fill in both fields.', 'error'); return; }
+
+      hideMsg(); setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+        const db    = currentRole === 'tech' ? TECHNICIANS : ENGINEERS;
+        const match = db.find(r => r.iqama === iqama && r.file === filenum);
+        if (match) {
+          attempts = 0;
+          showMsg(`✔ Welcome, ${match.name || 'Staff'}. Redirecting...`, 'success');
+          sessionStorage.setItem('staff_logged_in', 'true');
+          sessionStorage.setItem('staff_role',      currentRole);
+          sessionStorage.setItem('staff_iqama',     iqama);
+          sessionStorage.setItem('staff_name',      match.name || '');
+          setTimeout(() => { window.location.href = REDIRECT[currentRole]; }, 1300);
+        } else {
+          attempts++;
+          if (attempts >= MAX_ATTEMPTS) {
+            lockedUntil = Date.now() + LOCKOUT_MS;
+            showMsg(`✖ Locked for 2 min after ${MAX_ATTEMPTS} failed attempts.`, 'error');
+          } else {
+            const left = MAX_ATTEMPTS - attempts;
+            showMsg(`✖ Invalid credentials. ${left} attempt${left!==1?'s':''} remaining.`, 'error');
+          }
+        }
+      }, 750);
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  </script>
+</body>
+</html>
