@@ -328,9 +328,9 @@ function doLogin() {
       const el = document.getElementById("successMsg");
       el.innerHTML = "✅ Welcome, <strong>" + name + "</strong>! Redirecting…";
       el.style.display = "block";
-      sessionStorage.setItem("cmms_user",  name);
-      sessionStorage.setItem("cmms_role",  currentRole);
-      sessionStorage.setItem("cmms_iqama", iqama);
+      localStorage.setItem("cmms_user",  name);
+      localStorage.setItem("cmms_role",  currentRole);
+      localStorage.setItem("cmms_iqama", iqama);
       setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     } else {
       btn.disabled = false;
