@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<script>
+  // Auto-redirect if already logged in (either persistent or session)
+  (function(){
+    const ls = localStorage.getItem("cmms_user");
+    const ss = sessionStorage.getItem("cmms_user");
+    if(ls || ss){ window.location.replace("index.html"); }
+  })();
+</script>
 <meta name="theme-color" content="#0a2e5c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Login — CMMS King Faisal Medical Complex</title>
@@ -93,6 +101,20 @@ body{
   box-shadow:0 0 0 4px rgba(15,76,129,.12);
 }
 .field-input::placeholder{color:#b0c0d0;font-weight:500}
+
+/* ── Keep Me Logged In ───────────────────────────────────── */
+.remember-row{
+  display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:2px;
+  cursor:pointer;user-select:none;
+}
+.remember-row input[type=checkbox]{
+  width:18px;height:18px;accent-color:#0a2e5c;cursor:pointer;
+  border-radius:4px;flex-shrink:0;
+}
+.remember-label{
+  font-size:12px;font-weight:700;color:#607d9f;
+  text-transform:uppercase;letter-spacing:.06em;
+}
 
 /* ── Login Button ────────────────────────────────────────── */
 .login-btn{
@@ -189,6 +211,12 @@ body{
     <input class="field-input" type="text" id="file"
            placeholder="e.g. F001 or E001" autocomplete="off">
   </div>
+
+  <!-- Keep Me Logged In -->
+  <label class="remember-row">
+    <input type="checkbox" id="rememberMe" checked>
+    <span class="remember-label">🔓 Keep me logged in</span>
+  </label>
 
   <!-- Login Button -->
   <button class="login-btn" id="loginBtn" onclick="doLogin()">
@@ -328,9 +356,18 @@ function doLogin() {
       const el = document.getElementById("successMsg");
       el.innerHTML = "✅ Welcome, <strong>" + name + "</strong>! Redirecting…";
       el.style.display = "block";
-      localStorage.setItem("cmms_user",  name);
-      localStorage.setItem("cmms_role",  currentRole);
-      localStorage.setItem("cmms_iqama", iqama);
+
+      const remember = document.getElementById("rememberMe").checked;
+      const store = remember ? localStorage : sessionStorage;
+
+      // Clear both first so no stale data remains
+      localStorage.removeItem("cmms_user");  localStorage.removeItem("cmms_role");  localStorage.removeItem("cmms_iqama");
+      sessionStorage.removeItem("cmms_user"); sessionStorage.removeItem("cmms_role"); sessionStorage.removeItem("cmms_iqama");
+
+      store.setItem("cmms_user",  name);
+      store.setItem("cmms_role",  currentRole);
+      store.setItem("cmms_iqama", iqama);
+
       setTimeout(() => { window.location.href = DASHBOARD_URL; }, 1200);
     } else {
       btn.disabled = false;
