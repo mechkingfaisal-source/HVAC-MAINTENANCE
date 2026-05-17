@@ -1225,6 +1225,7 @@ function shareReport(rec){
   .no-print{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start}
   .btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}
   .btn-pr{background:${col};color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}
+  ..btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}
   .info-tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:9px 12px;font-size:11px;color:#0a2e5c;line-height:1.7;flex:1}
   .logo-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:3px solid ${col};margin-bottom:12px}
   .logo-bar img{height:55px;object-fit:contain}
@@ -1255,6 +1256,7 @@ function shareReport(rec){
   @media print{.no-print{display:none!important}body{padding:15px}}
   </style></head><body>
   <div class="no-print">
+    <button class="btn-back" onclick="window.close()">← Back</button>
     <button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>
     <button class="btn-pr"  onclick="window.print()">🖨️ Print</button>
     <div class="info-tip">💡 To save as PDF: press the button above → choose <b>"Save as PDF"</b> from the printer dialog</div>
@@ -1587,6 +1589,7 @@ function zsOpenPrint(){
     '.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}'+
     '.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
     '.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
+    '.btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
     '.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}'+
     '.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'+
     '.hdr-title{font-size:14px;font-weight:800}'+
@@ -1619,6 +1622,7 @@ function zsOpenPrint(){
     '@media print{.no-print{display:none!important}body{padding:8px}}'+
     '</style></head><body>'+
     '<div class="no-print">'+
+      '<button class="btn-back" onclick="window.close()">← Back</button>'+
       '<button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>'+
       '<button class="btn-pr" onclick="window.print()">🖨️ Print</button>'+
       '<div class="tip">💡 To Save as PDF: press the button ← select <b>«Save as PDF»</b> from the printer. Recommended: <b>Landscape</b></div>'+
@@ -1762,6 +1766,7 @@ function shareAsPDF(rec){
     '.no-print{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}'+
     '.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}'+
     '.btn-print{background:#0a2e5c;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:system-ui}'+
+    '.btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'+
     '.info-tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:7px;padding:9px 12px;font-size:11px;color:#0a2e5c;line-height:1.7}'+
     '.hdr{background:#0a2e5c;color:#fff;padding:12px 15px;border-radius:9px;margin-bottom:12px}'+
     '.hdr h1{font-size:14px;font-weight:600}.hdr p{font-size:10px;opacity:.7;margin-top:2px}'+
@@ -1774,6 +1779,7 @@ function shareAsPDF(rec){
     '.ft{border-top:1px solid #eee;padding-top:8px;font-size:10px;color:#aaa;text-align:center;margin-top:8px}'+
     '@media print{.no-print{display:none!important}body{padding:10px}}</style></head><body>'+
     '<div class="no-print">'+
+    '<button class="btn-back" onclick="window.close()">← Back</button>'+
     '<button class="btn-pdf" onclick="window.print()">📤 Save as PDF (choose «Save as PDF» from printer)</button>'+
     '<button class="btn-print" onclick="window.print()">🖨️ Print</button>'+
     '<div class="info-tip">💡 To Save as PDF: press the button above ← in the Print window choose <b>«Save as PDF»</b> or <b>«Microsoft Print to PDF»</b></div>'+
