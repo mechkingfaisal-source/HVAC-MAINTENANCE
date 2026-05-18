@@ -1109,7 +1109,7 @@ function _zsRecCard(r,i){
       '<span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ '+(r.doneT||0)+'</span>'+
       (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
       '<span class="rp" style="background:#EBF4FF;color:#0a2e5c;font-weight:900">📋 Zone Log</span>'+
-      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
+      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
     '</div>'+
   '</div>';
 }
@@ -1510,7 +1510,7 @@ function zsSaveAll(){
 }
 
 
-function zsOpenPrint(){
+function zsOpenPrint(sigs){
   var tech=(document.getElementById('zs-tech-input')&&document.getElementById('zs-tech-input').value||zsTechName||'—').trim()||'—';
   var date=document.getElementById('zs-date').value||new Date().toISOString().slice(0,10);
   var zone=ZONES[0];
@@ -1598,9 +1598,9 @@ function zsOpenPrint(){
     +'<div class="sig-section">'
       +'<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'
       +'<div class="sig-grid">'
-        +'<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'
-        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'
-        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">Technician</div>'+(sigs&&sigs[0]?'<img src="'+sigs[0]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div class="sig-line">Name & Signature</div>')+'</div>'
+        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div>'+(sigs&&sigs[1]?'<img src="'+sigs[1]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div class="sig-line">Name & Signature</div>')+'</div>'
+        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div>'+(sigs&&sigs[2]?'<img src="'+sigs[2]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div class="sig-line">Name & Signature</div>')+'</div>'
       +'</div>'
     +'</div>'
     +'<div class="footer"><span>Package Units PPM — Auto-generated</span><span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span></div>'
@@ -1785,12 +1785,120 @@ function shareReport(rec){
 }
 
 //---
+// SIGNATURE MODAL
+//---
+var _sigRec=null, _sigData={0:null,1:null,2:null}, _sigTab=0, _sigDrawing=false, _sigCanvasReady=false;
+
+function openSigModal(rec){
+  _sigRec=rec;
+  _sigData={0:null,1:null,2:null};
+  _sigTab=0;
+  document.getElementById('sig-modal').style.display='flex';
+  _initSigCanvas();
+  switchSigTab(0);
+  _updateSigStatus();
+}
+
+function _initSigCanvas(){
+  if(_sigCanvasReady) { _clearCanvas(); return; }
+  _sigCanvasReady=true;
+  var c=document.getElementById('sig-canvas');
+  c.width=c.offsetWidth||c.parentElement.offsetWidth||320;
+
+  function getPos(e){
+    var r=c.getBoundingClientRect();
+    var src=e.touches?e.touches[0]:e;
+    return{x:(src.clientX-r.left)*(c.width/r.width),y:(src.clientY-r.top)*(c.height/r.height)};
+  }
+  function drawStart(e){
+    e.preventDefault();
+    _sigDrawing=true;
+    var ctx=c.getContext('2d');
+    ctx.strokeStyle='#0a2e5c';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+    var p=getPos(e);
+    ctx.beginPath();ctx.moveTo(p.x,p.y);
+  }
+  function drawMove(e){
+    if(!_sigDrawing)return;
+    e.preventDefault();
+    var ctx=c.getContext('2d');
+    ctx.strokeStyle='#0a2e5c';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.lineJoin='round';
+    var p=getPos(e);
+    ctx.lineTo(p.x,p.y);ctx.stroke();
+  }
+  function drawEnd(){ _sigDrawing=false; }
+  c.addEventListener('mousedown',drawStart);
+  c.addEventListener('mousemove',drawMove);
+  c.addEventListener('mouseup',drawEnd);
+  c.addEventListener('mouseleave',drawEnd);
+  c.addEventListener('touchstart',drawStart,{passive:false});
+  c.addEventListener('touchmove',drawMove,{passive:false});
+  c.addEventListener('touchend',drawEnd);
+}
+
+function switchSigTab(n){
+  _sigTab=n;
+  var labels=['TECHNICIAN','HVAC ENGINEER','HEAD OF DEPT.'];
+  document.querySelectorAll('.sig-tab').forEach(function(t,i){t.classList.toggle('active',i===n);});
+  var lbl=document.getElementById('sig-pad-lbl');
+  if(lbl) lbl.textContent=labels[n];
+  _clearCanvas();
+}
+
+function clearSig(){ _clearCanvas(); }
+
+function _clearCanvas(){
+  var c=document.getElementById('sig-canvas');
+  if(c) c.getContext('2d').clearRect(0,0,c.width,c.height);
+}
+
+function saveSig(){
+  var c=document.getElementById('sig-canvas');
+  if(!c) return;
+  _sigData[_sigTab]=c.toDataURL();
+  _updateSigStatus();
+  if(_sigTab<2){ switchSigTab(_sigTab+1); }
+}
+
+function _updateSigStatus(){
+  var names=['Technician','HVAC Eng.','Head of Dept.'];
+  var st=document.getElementById('sig-status');
+  if(st) st.innerHTML=names.map(function(n,i){
+    return '<span class="sig-pill '+(_sigData[i]?'done':'pending')+'">'+(_sigData[i]?'✅':'○')+' '+n+'</span>';
+  }).join('');
+  var btn=document.getElementById('sig-print-btn');
+  if(btn) btn.disabled=!(_sigData[0]&&_sigData[1]&&_sigData[2]);
+}
+
+//---
 // SIGN THEN PRINT
 //---
 function proceedPrint(){
   document.getElementById('sig-modal').style.display='none';
-  doPrint(_sigRec, _sigData);
-  _sigRec=null;_sigData={0:null,1:null,2:null};
+  var rec=_sigRec, sigs=_sigData;
+  _sigRec=null; _sigData={0:null,1:null,2:null};
+  if(rec&&rec._zoneRecord){
+    var savedZone=zsZone, savedLvl=zsLvl, savedData=zsData;
+    var dateEl=document.getElementById('zs-date');
+    var savedDate=dateEl?dateEl.value:'';
+    var techEl=document.getElementById('zs-tech-input');
+    var savedTechVal=techEl?techEl.value:'';
+    zsZone=rec.zoneId||zsZone;
+    zsLvl=rec.lvl||zsLvl;
+    zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
+    if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone||'OPD']=rec.tech;
+    if(dateEl) dateEl.value=rec.date;
+    if(techEl) techEl.value=rec.tech;
+    zsOpenPrint(sigs);
+    setTimeout(function(){
+      zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
+      if(typeof zsTechPerZone!=='undefined'&&savedZone) zsTechPerZone[savedZone]=savedTechVal;
+      if(dateEl) dateEl.value=savedDate;
+      if(techEl) techEl.value=savedTechVal;
+    },300);
+  } else {
+    doPrint(rec, sigs);
+  }
 }
 
 </script>
