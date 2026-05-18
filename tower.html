@@ -560,7 +560,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-num{width:52px;border:1px solid #e2e8f0;border-radius:5px;padding:3px 4px;font-size:11px;text-align:center;outline:none}
 .zs-num:focus{border-color:#0a2e5c}
 
-/* ── Record Filter Tabs ───────────────────────────── */
+/* ── Record Filter Tabs ─────────────────────────────────── */
 .rec-filter-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
 .rec-ftab{border:2px solid #e2e8f0;border-radius:14px;padding:14px 8px 11px;text-align:center;cursor:pointer;background:#fff;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.06);position:relative;overflow:hidden}
 .rec-ftab::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:#e2e8f0;transition:background .2s}
@@ -570,11 +570,9 @@ body{background:#f0f2f5;color:#0d1b2a}
 .rec-ftab-icon{font-size:30px;display:block;margin-bottom:6px;line-height:1}
 .rec-ftab-title{font-size:11px;font-weight:900;color:#0a2e5c;text-transform:uppercase;letter-spacing:.04em;display:block;line-height:1.3}
 .rec-ftab-count{font-size:10px;font-weight:800;margin-top:5px;display:inline-block;background:#f0f4f9;color:#607d9f;border-radius:20px;padding:2px 9px;transition:all .2s}
+.rec-ftab.active .rec-ftab-title{color:#0a2e5c}
 .rec-ftab.active .rec-ftab-count{background:#0a2e5c;color:#fff}
-/* Zone record card accent */
-.ri-zone{border-left:4px solid #0a2e5c !important}
-.ri-zone .rname{color:#0a2e5c}
-/* CSS filter for tabs */
+/* Hide mismatched record types */
 #rec-list[data-filter="unit"] .ri-zone{display:none!important}
 #rec-list[data-filter="zone"] .ri-unit{display:none!important}
 </style>
@@ -877,15 +875,13 @@ function startRealtimeListener(){
 }
 
 function updateCloudStatus(online){
- const el=document.querySelector('.offl-badge');
+ const el=document.querySelector('.offl');
  if(!el)return;
  if(online){
  el.innerHTML='<span class="offl-dot" style="background:#4ade80"></span>☁️ Cloud';
- el.style.background='rgba(46,194,126,.2)';
  el.style.color='#4ade80';
  }else{
- el.innerHTML='<span class="offl-dot"></span>Offline Ready';
- el.style.background='rgba(255,255,255,.1)';
+ el.innerHTML='<span class="offl-dot"></span>Offline';
  el.style.color='rgba(255,255,255,.6)';
  }
 }
@@ -1129,7 +1125,6 @@ function showSuccess(rec,doneT,notDoneT){
 // =====================================================
 // RECORDS
 // =====================================================
-
 var recFilter='unit';
 function setRecFilter(t){
   recFilter=t;
@@ -1139,52 +1134,6 @@ function setRecFilter(t){
   var el=document.getElementById('rec-list');
   if(el)el.setAttribute('data-filter',t);
   renderRecs();
-}
-
-function _rName(r){
-  return r._zoneRecord?(r.zoneName||'Zone Sheet'):(r.unit&&r.unit.name?r.unit.name:'Record');
-}
-
-function _zsRecCard(r,i){
-  var lvlName=(typeof LVL_EN!=='undefined'?LVL_EN[r.lvl]:r.lvl)||r.lvl||'';
-  var sync=r._fbId?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️ Saved</span>':'<span class="rp" style="background:#fff3e0;color:#a05c00">⏳ Local</span>';
-  return '<div class="ri ri-zone" style="border-color:#0a2e5c;border-left:4px solid #0a2e5c">'+
-    '<div style="height:3px;background:linear-gradient(90deg,#0a2e5c,#00b4d8);margin:-9px -11px 9px;border-radius:9px 9px 0 0"></div>'+
-    '<div class="rrow">'+
-      '<span class="rname" style="font-size:13px">📊 '+(r.zoneName||r.zoneId||'Zone Sheet')+'</span>'+
-      '<span class="rdate">'+r.date+'</span>'+
-    '</div>'+
-    '<div class="rtech">👷 '+(r.tech||'—')+' | ⚙️ '+lvlName+' | 🏢 '+(r.unitCount||'—')+' units</div>'+
-    '<div class="rpills">'+sync+
-      '<span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ '+(r.doneT||0)+'</span>'+
-      (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
-      '<span class="rp" style="background:#EBF4FF;color:#0a2e5c;font-weight:900">📋 Zone Log</span>'+
-      '<button class="rbtn" style="background:#0a2e5c;color:#fff;border-color:#0a2e5c" onclick="printZoneRec(records['+i+'])">🖨️ Print</button>'+
-      '<button class="rbtn" style="background:#fef0f0;color:#c0392b;border-color:#f5bfc0" onclick="deleteRec('+i+')">🗑️</button>'+
-    '</div>'+
-  '</div>';
-}
-
-function printZoneRec(rec){
-  var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
-  var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
-  var dateEl=document.getElementById('zs-date');
-  var savedDate=dateEl?dateEl.value:'';
-  var techEl=document.getElementById('zs-tech-input');
-  var savedTechVal=techEl?techEl.value:'';
-  zsZone=rec.zoneId||zsZone;
-  zsLvl=rec.lvl||zsLvl;
-  zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
-  if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
-  if(dateEl) dateEl.value=rec.date;
-  if(techEl) techEl.value=rec.tech;
-  zsOpenPrint();
-  setTimeout(function(){
-    zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
-    if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
-    if(dateEl) dateEl.value=savedDate;
-    if(techEl) techEl.value=savedTechVal;
-  },300);
 }
 
 function renderRecs(){
@@ -1199,9 +1148,9 @@ function renderRecs(){
  el.innerHTML=`<div class="empty-state"><div class="empty-icon">${fbConnected?'📋':'🔄'}</div><div class="empty-txt">${fbConnected?'No records yet<br>Start maintaining a unit':'Loading records...<br><small>Please check your internet connection</small>'}</div></div>`;
  return;
  }
- el.innerHTML=records.map((r,i)=>{if(r._zoneRecord)return _zsRecCard(r,i);return`
- <div class="ri ${(r._fromZoneSheet&&r._zoneRecord)?'ri-zone':'ri-unit'}">
- <div class="rrow"><span class="rname">${_rName(r)} — ${r._zoneRecord?'Zone Sheet':LVL_EN[r.lvl]}</span><span class="rdate">${r.date}</span></div>
+ el.innerHTML=records.map((r,i)=>`
+ <div class="ri ${r._fromZoneSheet?'ri-zone':'ri-unit'}">
+ <div class="rrow"><span class="rname">${r.unit.name} — ${LVL_EN[r.lvl]}</span><span class="rdate">${r.date}</span></div>
  <div class="rtech">👷 ${r.tech} | ${r.unit.zoneName}</div>
  <div class="rpills">
  <span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ ${r.doneT}</span>
@@ -1223,7 +1172,7 @@ function renderRecs(){
 
 function deleteRec(i){
   const r=records[i];
-  if(!confirm(`🗑️ Delete this record?\n\n${_rName(r)} — ${r._zoneRecord?'Zone Sheet':LVL_EN[r.lvl]}\n📅 ${r.date}\n👷 ${r.tech}\n\nThis cannot be undone.`))return;
+  if(!confirm(`🗑️ Delete this record?\n\n${r.unit.name} — ${LVL_EN[r.lvl]}\n📅 ${r.date}\n👷 ${r.tech}\n\nThis cannot be undone.`))return;
   if(fbConnected&&r._fbId){
     db.collection(COL).doc(r._fbId).delete().catch(e=>console.warn('Firebase delete error:',e));
   }
@@ -1483,17 +1432,6 @@ function renderQR(){
 }
 
 // =====================================================
-// QR ZONE TABS
-// =====================================================
-function renderQRZoneTabs(){
- var container=document.getElementById('qr-zone-tabs');
- if(!container)return;
- container.innerHTML=ZONES.map(function(z){
-   return '<button class="lt'+(qrZone===z.id?' active':'')+'" onclick="qrZone=\''+z.id+'\';renderQRZoneTabs();renderQR();">'+z.name+'</button>';
- }).join('');
-}
-
-// =====================================================
 // NAV
 // =====================================================
 function go(tab){
@@ -1691,53 +1629,49 @@ function zsClearAll(){
 }
 
 function zsSaveAll(){
-  if(typeof zsZone!=='undefined'&&!zsZone){ alert('Select a zone first'); return; }
-  var tech=((zsTechPerZone[zsZone]||'').trim());
-  var date=(document.getElementById('zs-date').value);
+  if(!zsZone){ alert('Select a zone first'); return; }
+  var tech = (zsTechPerZone[zsZone]||'').trim();
+  var date = document.getElementById('zs-date').value;
   if(!tech){ alert('Enter technician name for this zone'); return; }
   if(!date){ alert('Select a date'); return; }
 
-  var zone=ZONES.find(function(z){ return z.id === zsZone; });
-  if(!zone){ alert('No zone found'); return; }
-  var checks=CHECKS[zsLvl].filter(function(c){ return c.type!=='note'; });
-  var togs=checks.filter(function(c){ return c.type==='tog'; });
-  var totalDone=0, totalNotDone=0;
-  var unitIds=(zone.units).map(function(u){ return typeof u==='string'?u:(u.id||u); });
+  var zone = ZONES.find(function(z){ return z.id === zsZone; });
+  var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
+  var saved = 0;
 
-  unitIds.forEach(function(uid){
-    var data=zsData[uid]||{};
-    totalDone    +=togs.filter(function(c){ return data[c.id]===true; }).length;
-    totalNotDone +=togs.filter(function(c){ return data[c.id]===false; }).length;
+  zone.units.forEach(function(u){
+    var uid = u.id||u;
+    var unit = ALL_UNITS[uid];
+    if(!unit) return;
+    var data = zsData[uid] || {};
+    var togs = checks.filter(function(c){ return c.type === 'tog'; });
+    var doneT = togs.filter(function(c){ return data[c.id]===true; }).length;
+    var notDoneT = togs.filter(function(c){ return data[c.id]===false; }).length;
+    var rec = {
+      unitId: unit.id,
+      unit: JSON.parse(JSON.stringify(unit)),
+      lvl: zsLvl,
+      date: date,
+      tech: tech,
+      doneT: doneT,
+      notDoneT: notDoneT,
+      data: JSON.parse(JSON.stringify(data)),
+      _fromZoneSheet: true
+    };
+    if(typeof fbConnected !== 'undefined' && fbConnected && db){
+      db.collection(COL).add(rec).then(function(docRef){
+        rec._fbId = docRef.id;
+      }).catch(function(){});
+    }
+    records.unshift(rec);
+    saved++;
   });
 
-  var rec={
-    _fromZoneSheet: true,
-    _zoneRecord: true,
-    zoneId:    typeof zsZone!=='undefined'?zsZone:(zone.id||''),
-    zoneName:  zone.name,
-    zoneEn:    zone.en||zone.name,
-    lvl:       zsLvl,
-    date:      date,
-    tech:      tech,
-    unitCount: unitIds.length,
-    doneT:     totalDone,
-    notDoneT:  totalNotDone,
-    zsData:    JSON.parse(JSON.stringify(zsData)),
-    ts:        Date.now()
-  };
-
-  if(typeof fbConnected!=='undefined'&&fbConnected&&db){
-    db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
-  }
-  records.unshift(rec);
-  try{ localStorage.setItem('hvac_records', JSON.stringify(records.slice(0,500))); }catch(e){}
+  try{ localStorage.setItem('hvac_tower', JSON.stringify(records.slice(0,500))); }catch(e){}
   renderRecs();
-  if(typeof renderUnits==='function') renderUnits();
-
-  var msg='✅ Zone sheet saved!\n'+zone.name+' | '+(typeof LVL_EN!=='undefined'?LVL_EN[zsLvl]:zsLvl)+' | '+date+'\n'+ unitIds.length +' units | ✓ '+totalDone+' ✗ '+totalNotDone;
+  var msg = '✅ Saved '+saved+' units successfully!\n'+zone.name+' | '+LVL_EN[zsLvl]+' | '+date;
   if(confirm(msg+'\n\nDo you want to print the zone log?')) zsOpenPrint();
 }
-
 
 function zsOpenPrint(){
   if(!zsZone){ alert('Select a zone first'); return; }
