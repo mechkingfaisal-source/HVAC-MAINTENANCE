@@ -420,6 +420,27 @@ body{background:#f0f2f5;color:#0d1b2a}
   </div>
 </div>
 
+<div class="sig-modal-bg" id="sig-modal" style="display:none" onclick="if(event.target===this)closeSigModal()">
+  <div class="sig-modal">
+    <div class="sig-modal-title">Authorized Signatures</div>
+    <div class="sig-modal-sub" id="sig-modal-sub">Open a record to capture signatures before printing.</div>
+    <div class="sig-tabs" id="sig-tabs"></div>
+    <div class="sig-pad-wrap">
+      <span class="sig-pad-lbl" id="sig-pad-lbl">Technician</span>
+      <canvas class="sig-pad" id="sig-pad" style="height:180px"></canvas>
+    </div>
+    <div class="sig-btns-row">
+      <button class="sig-clear" onclick="sigClearCurrent()">Clear</button>
+      <button class="sig-done" onclick="sigSaveCurrent()">Save Signature</button>
+    </div>
+    <div class="sig-status" id="sig-status"></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="sig-clear" style="flex:1;margin-bottom:0" onclick="closeSigModal()">Close</button>
+      <button class="sig-print-btn" id="sig-print" style="flex:2" onclick="printSignedRecord()">Print Signed Report</button>
+    </div>
+  </div>
+</div>
+
 <script>
 window.onerror=function(msg,src,line,col,err){
   console.error('JS Error:',msg,src,line,col,err);
@@ -910,6 +931,7 @@ function zsRenderTable(){
   if(!zone) return;
   var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
   var units  = zone.units.map(function(uid){ return ALL_UNITS[uid]; }).filter(Boolean);
+  var sigSection = buildPrintSignatureSection(sigs,'Authorized Signatures');
 
   // Init data
   units.forEach(function(u){
@@ -1029,7 +1051,7 @@ function zsSaveAll(){
 }
 
 
-function zsOpenPrint(){
+function zsOpenPrint(sigs){
   if(!zsZone){ alert('Select a zone first'); return; }
   var tech  = (zsTechPerZone[zsZone]||'').trim() || '—';
   var date  = document.getElementById('zs-date').value || new Date().toISOString().slice(0,10);
@@ -1139,14 +1161,7 @@ function zsOpenPrint(){
       '</tr></thead>'+
       '<tbody>'+rows+'</tbody>'+
     '</table>'+
-    '<div class="sig-section">'+
-      '<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'+
-      '<div class="sig-grid">'+
-        '<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'+
-        '<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'+
-      '</div>'+
-    '</div>'+
+    sigSection+
     '<div class="footer">'+
       '<span>HVAC Zone Log Sheet — Auto-generated</span>'+
       '<span>King Faisal Medical Complex | '+new Date().toLocaleDateString('ar-SA')+'</span>'+
@@ -1188,12 +1203,12 @@ function _zsRecCard(r,i){
       '<span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ '+(r.doneT||0)+'</span>'+
       (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
       '<span class="rp" style="background:#EBF4FF;color:#0a2e5c;font-weight:900">📋 Zone Log</span>'+
-      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
     '</div>'+
+    '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
   '</div>';
 }
 
-function printZoneRec(rec){
+function printZoneRec(rec,sigs){
   var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
   var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
   var dateEl=document.getElementById('zs-date');
@@ -1206,7 +1221,7 @@ function printZoneRec(rec){
   if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
   if(dateEl) dateEl.value=rec.date;
   if(techEl) techEl.value=rec.tech;
-  zsOpenPrint();
+  zsOpenPrint(sigs);
   setTimeout(function(){
     zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
     if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
@@ -1240,8 +1255,9 @@ function renderRecs(){
       (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
       (r.data&&r.data.notes?'<span class="rp" style="background:#fff3e0;color:#a05c00">📝</span>':'')+
       (photoCount?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">📸 '+photoCount+'</span>':'')+
-      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="showModal(records['+i+'])">📨 Report</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printReport(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareAsPDF(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
-      '</div></div>';
+      '</div>'+
+      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="showModal(records['+i+'])">📨 Report</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printReport(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareAsPDF(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
+      '</div>';
   }).join('');
 }
 
@@ -1291,6 +1307,198 @@ function copyReport(){
 }
 function fb(txt){var ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.focus();ta.select();document.execCommand('copy');document.body.removeChild(ta);alert('✅ Report copied');}
 
+var SIG_ROLES=[
+  {key:'tech',label:'Technician'},
+  {key:'engineer',label:'HVAC Engineer'},
+  {key:'head',label:'Head of Mech. Dept.'}
+];
+var sigState=null,sigPadCanvas=null,sigPadCtx=null,sigPadDirty=false,sigDrawing=false,sigLastPoint=null;
+function _sigEscape(txt){return String(txt==null?'':txt).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+function _sigRecTitle(rec){
+  if(!rec) return 'Record';
+  if(rec._zoneRecord) return (rec.zoneName||rec.zoneId||'Zone Sheet')+' — '+(LVL_EN[rec.lvl]||rec.lvl||'Zone Log');
+  return _rName(rec)+' — '+(LVL_EN[rec.lvl]||rec.lvl||'Report');
+}
+function buildPrintSignatureSection(sigs,title){
+  var head=title||'Authorized Signatures';
+  return '<div class="sig-section">'+
+    '<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">'+head+'</div>'+
+    '<div class="sig-grid">'+SIG_ROLES.map(function(role){
+      var signed=sigs&&sigs[role.key];
+      var media=signed
+        ? '<div style="height:54px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:6px"><img src="'+signed+'" alt="'+role.label+' signature" style="max-width:100%;max-height:54px;object-fit:contain"></div>'
+        : '<div style="height:54px;margin-bottom:6px"></div>';
+      return '<div class="sig-box">'+media+'<div class="sig-name">'+role.label+'</div><div class="sig-line">'+(signed?'Signed':'Name & Signature')+'</div></div>';
+    }).join('')+
+    '</div>'+
+  '</div>';
+}
+function ensureSigModal(){
+  if(document.getElementById('sig-modal')&&document.getElementById('sig-pad')){
+    if(!sigPadCanvas){
+      sigPadCanvas=document.getElementById('sig-pad');
+      sigPadCanvas.addEventListener('pointerdown',sigPointerStart);
+      sigPadCanvas.addEventListener('pointermove',sigPointerMove);
+      sigPadCanvas.addEventListener('pointerup',sigPointerEnd);
+      sigPadCanvas.addEventListener('pointerleave',sigPointerEnd);
+      sigPadCanvas.addEventListener('pointercancel',sigPointerEnd);
+    }
+    return;
+  }
+}
+function sigResizeCanvas(){
+  sigPadCanvas=document.getElementById('sig-pad');
+  if(!sigPadCanvas) return;
+  var wrap=sigPadCanvas.parentElement;
+  var width=Math.max(280,Math.floor((wrap&&wrap.clientWidth?wrap.clientWidth:460)-4));
+  var height=180;
+  var ratio=window.devicePixelRatio||1;
+  sigPadCanvas.width=width*ratio;
+  sigPadCanvas.height=height*ratio;
+  sigPadCanvas.style.width=width+'px';
+  sigPadCanvas.style.height=height+'px';
+  sigPadCtx=sigPadCanvas.getContext('2d');
+  sigPadCtx.setTransform(ratio,0,0,ratio,0,0);
+  sigPadCtx.lineWidth=2.5;
+  sigPadCtx.lineCap='round';
+  sigPadCtx.lineJoin='round';
+  sigPadCtx.strokeStyle='#0a2e5c';
+  sigRenderActiveSignature();
+}
+function sigClearCanvas(){
+  if(!sigPadCanvas||!sigPadCtx) return;
+  sigPadCtx.save();
+  sigPadCtx.setTransform(1,0,0,1,0,0);
+  sigPadCtx.clearRect(0,0,sigPadCanvas.width,sigPadCanvas.height);
+  sigPadCtx.restore();
+  sigPadDirty=false;
+  sigDrawing=false;
+  sigLastPoint=null;
+}
+function sigRenderActiveSignature(){
+  sigClearCanvas();
+  var lbl=document.getElementById('sig-pad-lbl');
+  var role=SIG_ROLES.find(function(r){return sigState&&r.key===sigState.active;})||SIG_ROLES[0];
+  if(lbl) lbl.textContent=role.label;
+  var src=sigState&&sigState.signatures?sigState.signatures[role.key]:null;
+  if(!src||!sigPadCtx||!sigPadCanvas) return;
+  var img=new Image();
+  img.onload=function(){
+    sigClearCanvas();
+    var cw=sigPadCanvas.width/(window.devicePixelRatio||1);
+    var ch=sigPadCanvas.height/(window.devicePixelRatio||1);
+    var iw=img.width||1, ih=img.height||1;
+    var scale=Math.min((cw-24)/iw,(ch-24)/ih,1);
+    var dw=iw*scale, dh=ih*scale;
+    var dx=(cw-dw)/2, dy=(ch-dh)/2;
+    sigPadCtx.drawImage(img,dx,dy,dw,dh);
+    sigPadDirty=true;
+  };
+  img.src=src;
+}
+function renderSigModal(){
+  ensureSigModal();
+  if(!sigState) return;
+  var tabs=document.getElementById('sig-tabs');
+  var status=document.getElementById('sig-status');
+  var sub=document.getElementById('sig-modal-sub');
+  if(sub) sub.textContent=_sigRecTitle(sigState.rec)+' | '+(sigState.rec&&sigState.rec.date||'');
+  if(tabs) tabs.innerHTML=SIG_ROLES.map(function(role){
+    return '<button class="sig-tab'+(sigState.active===role.key?' active':'')+'" onclick="sigSetActive(\''+role.key+'\')">'+role.label+'</button>';
+  }).join('');
+  if(status) status.innerHTML=SIG_ROLES.map(function(role){
+    var ok=!!(sigState.signatures&&sigState.signatures[role.key]);
+    return '<span class="sig-pill '+(ok?'done':'pending')+'">'+role.label+': '+(ok?'Signed':'Pending')+'</span>';
+  }).join('');
+  var canPrint=SIG_ROLES.some(function(role){return !!(sigState.signatures&&sigState.signatures[role.key]);});
+  var printBtn=document.getElementById('sig-print');
+  if(printBtn) printBtn.disabled=!canPrint;
+  sigRenderActiveSignature();
+}
+function openSigModal(rec){
+  ensureSigModal();
+  if(!rec){alert('No record selected');return;}
+  sigState={
+    rec:rec,
+    active:'tech',
+    signatures:JSON.parse(JSON.stringify(rec._signatures||{}))
+  };
+  var modal=document.getElementById('sig-modal');
+  if(modal) modal.style.display='flex';
+  setTimeout(function(){ sigResizeCanvas(); renderSigModal(); },30);
+}
+function closeSigModal(){
+  var modal=document.getElementById('sig-modal');
+  if(modal) modal.style.display='none';
+  sigDrawing=false;
+  sigLastPoint=null;
+}
+function sigSetActive(roleKey){
+  if(!sigState) return;
+  sigState.active=roleKey;
+  renderSigModal();
+}
+function sigPointerPoint(ev){
+  var rect=sigPadCanvas.getBoundingClientRect();
+  return {x:ev.clientX-rect.left,y:ev.clientY-rect.top};
+}
+function sigPointerStart(ev){
+  if(!sigPadCtx) return;
+  ev.preventDefault();
+  sigDrawing=true;
+  sigLastPoint=sigPointerPoint(ev);
+  sigPadDirty=true;
+  try{sigPadCanvas.setPointerCapture(ev.pointerId);}catch(e){}
+  sigPadCtx.beginPath();
+  sigPadCtx.moveTo(sigLastPoint.x,sigLastPoint.y);
+}
+function sigPointerMove(ev){
+  if(!sigDrawing||!sigPadCtx) return;
+  ev.preventDefault();
+  var pt=sigPointerPoint(ev);
+  sigPadCtx.lineTo(pt.x,pt.y);
+  sigPadCtx.stroke();
+  sigLastPoint=pt;
+}
+function sigPointerEnd(ev){
+  if(!sigDrawing) return;
+  ev.preventDefault();
+  sigDrawing=false;
+  try{sigPadCanvas.releasePointerCapture(ev.pointerId);}catch(e){}
+}
+function sigClearCurrent(){
+  if(!sigState) return;
+  if(sigState.signatures) delete sigState.signatures[sigState.active];
+  sigClearCanvas();
+  renderSigModal();
+}
+function sigSaveCurrent(){
+  if(!sigState||!sigPadCanvas) return;
+  if(!sigPadDirty){alert('Please sign in the box first');return;}
+  sigState.signatures[sigState.active]=sigPadCanvas.toDataURL('image/png');
+  sigState.rec._signatures=JSON.parse(JSON.stringify(sigState.signatures));
+  var next=SIG_ROLES.find(function(role){return !sigState.signatures[role.key];});
+  if(next) sigState.active=next.key;
+  renderSigModal();
+}
+function printSignedRecord(){
+  if(!sigState||!sigState.rec) return;
+  var hasAny=SIG_ROLES.some(function(role){return !!(sigState.signatures&&sigState.signatures[role.key]);});
+  if(!hasAny){alert('Please save at least one signature first');return;}
+  var rec=sigState.rec;
+  var sigs=JSON.parse(JSON.stringify(sigState.signatures||{}));
+  rec._signatures=sigs;
+  closeSigModal();
+  setTimeout(function(){
+    if(rec._zoneRecord) printZoneRec(rec,sigs);
+    else printReport(rec,sigs);
+  },60);
+}
+window.addEventListener('resize',function(){
+  var modal=document.getElementById('sig-modal');
+  if(modal&&modal.style.display!=='none'&&sigState) sigResizeCanvas();
+});
+
 function shareAsPDF(rec){
   var checks=CHECKS[rec.lvl].filter(function(c){return c.type!=='note';});
   var w=window.open('','_blank');
@@ -1336,6 +1544,7 @@ function shareAsPDF(rec){
     '<div class="sb" style="background:#fef0f0"><div style="font-size:22px;font-weight:700;color:#c0392b">'+rec.notDoneT+'</div><div style="font-size:10px;color:#c0392b;margin-top:2px">Needs Follow-up</div></div></div>'+
     '<table><tr><th>Maintenance Item</th><th>Description</th><th>Result</th></tr>'+rows+'</table>'+
     (rec.data&&rec.data.notes?'<div style="background:#fff3e0;border-radius:7px;padding:10px;font-size:12px;line-height:1.7;margin-bottom:10px"><b>📝 Remarks:</b><br><br>'+rec.data.notes+'</div>':'')+
+    sigSection+
     '<div class="ft">HVAC Maintenance System — King Faisal Medical Complex — '+new Date().toLocaleDateString('ar-SA')+'</div>'+
     '</body></html>');
   w.document.close();
@@ -1353,6 +1562,7 @@ function printReport(rec,sigs){
     var res=c.type==='num'?'<b>'+(v||'—')+' '+(c.unit||'')+'</b>':v===true?'<span style="color:green;font-weight:700">✓ Done</span>':v===false?'<span style="color:red;font-weight:700">✗ Not Done</span>':'<span style="color:#aaa">—</span>';
     return '<tr><td style="font-weight:700;color:#0d1b2a">'+c.lbl+'</td><td style="font-size:12px;color:#0a2e5c;font-weight:800;font-family:Arial,sans-serif;-webkit-text-stroke:0.3px #0a2e5c">'+c.sub+'</td><td>'+res+'</td></tr>';
   }).join('');
+  var sigSection = buildPrintSignatureSection(sigs,'Authorized Signatures');
   w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8"><title>'+rec.unit.name+'</title>'+
     '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui;padding:22px;font-size:13px;direction:rtl}'+
     '.hdr{background:#0a2e5c;color:#fff;padding:12px 15px;border-radius:9px;margin-bottom:12px}'+
