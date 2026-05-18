@@ -1134,9 +1134,11 @@ function renderRecs(){
         ${r.notDoneT?`<span class="rp" style="background:#fef0f0;color:#c0392b">✗ ${r.notDoneT}</span>`:''}
         ${r.data&&r.data.notes?`<span class="rp" style="background:#fff3e0;color:#a05c00">📝</span>`:''}
         ${r._fbId?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️</span>':'<span class="rp" style="background:#fff3e0;color:#a05c00">⏳</span>'}
-        <button class="rbtn" onclick="quickPrint(records[${i}])">🖨️</button>
-        <button class="rbtn" style="background:#e8f8f0;color:#1a7a4a;border-color:#a3d9be" onclick="shareReport(records[${i}])">📤</button>
-        <button class="rbtn" style="background:#fef0f0;color:#c0392b;border-color:#f5bfc0" onclick="deleteRec(${i})">🗑️</button>
+        <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;">
+        <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="quickPrint(records[${i}])">🖨️ Print</button>
+        <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareReport(records[${i}])">💾 Save PDF</button>
+        <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec(${i})">🗑️ Delete</button>
+        </div>
       </div>
     </div>`).join('');
 }
