@@ -831,9 +831,9 @@ const LVL={daily:'☀️ Daily',weekly:'📅 Weekly',monthly:'🗓️ Monthly',h
 const LVL_EN={daily:'Daily',weekly:'Weekly',monthly:'Monthly',halfyearly:'Half Yearly',annually:'Annually'};
 
 // =====================================================
-// FIREBASE INIT
+// FIREBASE INIT — Same cloud as main dashboard (hvac-ppm)
 // =====================================================
-const firebaseConfig={
+var firebaseConfig={
  apiKey:"AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
  authDomain:"hvac-ppm.firebaseapp.com",
  projectId:"hvac-ppm",
@@ -841,13 +841,40 @@ const firebaseConfig={
  messagingSenderId:"429823910983",
  appId:"1:429823910983:web:1836576203d10cbc9c3d62"
 };
-firebase.initializeApp(firebaseConfig);
-const db=firebase.firestore();
-const COL='hvac_records_v2'; // collection Dedicated to this site
+var db = null;
+var COL='hvac_records';
 
 let fbConnected=false;
 
+function loadFirebase(cb){
+ if(typeof firebase !== 'undefined' && firebase.firestore){ cb(); return; }
+ var s1=document.createElement('script');
+ s1.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+ s1.onload=function(){
+   var s2=document.createElement('script');
+   s2.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+   s2.onload=function(){
+     try{
+       firebase.initializeApp(firebaseConfig);
+       db=firebase.firestore();
+     }catch(e){ console.warn('Firebase init failed:',e); db=null; }
+     cb();
+   };
+   s2.onerror=function(){ db=null; cb(); };
+   document.head.appendChild(s2);
+ };
+ s1.onerror=function(){ db=null; cb(); };
+ document.head.appendChild(s1);
+}
+
 function startRealtimeListener(){
+ if(!db||typeof db.collection!=='function'){
+   fbConnected=false;
+   updateCloudStatus(false);
+   try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
+   renderRecs();renderUnits();
+   return;
+ }
  db.collection(COL).orderBy('ts','desc').limit(500)
  .onSnapshot(function(snap){
  fbConnected=true;
@@ -856,8 +883,7 @@ function startRealtimeListener(){
  snap.forEach(function(doc){
  const d=doc.data();
  d._fbId=doc.id;
- // Retrieve photos from localStorage by fbId
- if(d._photoCount&&!d.photos.length){
+ if(d._photoCount && d.photos && !d.photos.length){
  try{
  const stored=localStorage.getItem('photos_'+doc.id);
  if(stored) d.photos=JSON.parse(stored);
@@ -871,7 +897,7 @@ function startRealtimeListener(){
  fbConnected=false;
  updateCloudStatus(false);
  console.warn('Firebase offline:',err);
- try{records=JSON.parse(localStorage.getItem('hvac_records')||'[]');}catch(e){}
+ try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
  renderRecs();renderUnits();
  });
 }
@@ -895,7 +921,7 @@ function updateCloudStatus(online){
 // =====================================================
 let selUnit=null,selLvl='daily',fd={},qrZone='2ND';
 let records=[];
-try{records=JSON.parse(localStorage.getItem('hvac_records')||'[]');}catch(e){}
+try{records=JSON.parse(localStorage.getItem('hvac_kfmc')||'[]');}catch(e){}
 
 // =====================================================
 // UNITS
@@ -1091,14 +1117,14 @@ function submitF(){
  .catch(function(err){
  alert('⚠️ Cloud save error:\n'+err.message+'\nSaved locally as fallback');
  records.unshift(rec);
- try{localStorage.setItem('hvac_records',JSON.stringify(records.slice(0,200)));}catch(e){}
+ try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
  showSuccess(rec,doneT,notDoneT);
  renderUnits();
  });
  }else{
  // Local save when offline
  records.unshift(rec);
- try{localStorage.setItem('hvac_records',JSON.stringify(records.slice(0,200)));}catch(e){}
+ try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
  showSuccess(rec,doneT,notDoneT);
  renderUnits();
  }
@@ -1228,7 +1254,7 @@ function deleteRec(i){
     db.collection(COL).doc(r._fbId).delete().catch(e=>console.warn('Firebase delete error:',e));
   }
   records.splice(i,1);
-  try{localStorage.setItem('hvac_records',JSON.stringify(records.slice(0,200)));}catch(e){}
+  try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
   renderRecs();
 }
 
@@ -1531,12 +1557,14 @@ if('serviceWorker' in navigator){
 // INIT
 // =====================================================
 function _safeInit(){
- try{
- renderUnits();
- renderRecs();
- startRealtimeListener(); // Firebase real-time sync
- }
+ try{ renderUnits(); renderRecs(); }
  catch(e){ console.error('Init error:',e); }
+ setTimeout(function(){
+   loadFirebase(function(){
+     try{ startRealtimeListener(); }
+     catch(e){ console.warn('Firebase unavailable, running offline:',e); updateCloudStatus(false); }
+   });
+ }, 500);
 }
 if(document.readyState==='loading'){
  document.addEventListener('DOMContentLoaded',_safeInit);
@@ -1730,7 +1758,7 @@ function zsSaveAll(){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
   }
   records.unshift(rec);
-  try{ localStorage.setItem('hvac_records', JSON.stringify(records.slice(0,500))); }catch(e){}
+  try{ localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500))); }catch(e){}
   renderRecs();
   if(typeof renderUnits==='function') renderUnits();
 
