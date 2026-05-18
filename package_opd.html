@@ -1793,10 +1793,13 @@ function openSigModal(rec){
   _sigRec=rec;
   _sigData={0:null,1:null,2:null};
   _sigTab=0;
+  _sigCanvasReady=false;
   document.getElementById('sig-modal').style.display='flex';
-  _initSigCanvas();
-  switchSigTab(0);
-  _updateSigStatus();
+  setTimeout(function(){
+    _initSigCanvas();
+    switchSigTab(0);
+    _updateSigStatus();
+  },50);
 }
 
 function _initSigCanvas(){
