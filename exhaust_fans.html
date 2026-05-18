@@ -702,9 +702,9 @@ const LVL = {daily:'☀️ Daily', monthly:'🗓️ Monthly', quarterly:'📊 Qu
 const LVL_EN = {daily:'Daily', monthly:'Monthly', quarterly:'Quarterly', annually:'Annually'};
 
 // =====================================================
-// FIREBASE
+// FIREBASE — Same cloud as main dashboard (hvac-ppm)
 // =====================================================
-const firebaseConfig = {
+var firebaseConfig = {
   apiKey:"AIzaSyDr9meYf-fKn7i-3NeQxfSnXNTs-4HGJyE",
   authDomain:"hvac-ppm.firebaseapp.com",
   projectId:"hvac-ppm",
@@ -712,12 +712,38 @@ const firebaseConfig = {
   messagingSenderId:"429823910983",
   appId:"1:429823910983:web:1836576203d10cbc9c3d62"
 };
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const COL = 'exfan_records_v2';
+var db = null;
+var COL = 'hvac_records';
 let fbConnected = false;
 
+function loadFirebase(cb) {
+  if(typeof firebase !== 'undefined' && firebase.firestore) { cb(); return; }
+  var s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js';
+  s1.onload = function() {
+    var s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
+    s2.onload = function() {
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+      } catch(e) { console.warn('Firebase init failed:',e); db = null; }
+      cb();
+    };
+    s2.onerror = function() { db = null; cb(); };
+    document.head.appendChild(s2);
+  };
+  s1.onerror = function() { db = null; cb(); };
+  document.head.appendChild(s1);
+}
+
 function startRealtimeListener() {
+  if(!db || typeof db.collection !== 'function') {
+    fbConnected = false;
+    try { records = JSON.parse(localStorage.getItem('hvac_kfmc')||'[]'); } catch(e){}
+    renderView(); renderRecs();
+    return;
+  }
   db.collection(COL).orderBy('ts','desc').limit(500)
     .onSnapshot(function(snap){
       fbConnected = true;
@@ -726,7 +752,7 @@ function startRealtimeListener() {
       renderView(); renderRecs();
     }, function(){
       fbConnected = false;
-      try { records = JSON.parse(localStorage.getItem('exfan_records_v2')||'[]'); } catch(e){}
+      try { records = JSON.parse(localStorage.getItem('hvac_kfmc')||'[]'); } catch(e){}
       renderView(); renderRecs();
     });
 }
@@ -742,7 +768,7 @@ let selLvl = 'daily';
 let fd = {};
 let records = [];
 let searchQ = '';
-try { records = JSON.parse(localStorage.getItem('exfan_records_v2')||'[]'); } catch(e){}
+try { records = JSON.parse(localStorage.getItem('hvac_kfmc')||'[]'); } catch(e){}
 
 // =====================================================
 // UNITS TAB RENDERING — 3 levels
@@ -997,12 +1023,12 @@ function submitF(){
       rec._fbId=docRef.id; showSuccess(rec,doneT,notDoneT);
     }).catch(function(){
       records.unshift(rec);
-      try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,200)));}catch(e){}
+      try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
       showSuccess(rec,doneT,notDoneT); renderView();
     });
   } else {
     records.unshift(rec);
-    try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,200)));}catch(e){}
+    try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
     showSuccess(rec,doneT,notDoneT); renderView();
   }
 }
@@ -1534,7 +1560,7 @@ function zsSaveAll(){
     db.collection(COL).add(rec).then(function(docRef){ rec._fbId=docRef.id; }).catch(function(){});
   }
   records.unshift(rec);
-  try{ localStorage.setItem('exfan_records_v2', JSON.stringify(records.slice(0,500))); }catch(e){}
+  try{ localStorage.setItem('hvac_kfmc', JSON.stringify(records.slice(0,500))); }catch(e){}
   renderRecs();
   if(typeof renderUnits==='function') renderUnits();
 
@@ -1712,7 +1738,7 @@ function deleteRec(i){
     db.collection(COL).doc(r._fbId).delete().catch(e=>console.warn('Firebase delete error:',e));
   }
   records.splice(i,1);
-  try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,500)));}catch(e){}
+  try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,500)));}catch(e){}
   renderRecs();
 }
 
@@ -1925,8 +1951,14 @@ document.getElementById('install-btn').addEventListener('click',async()=>{if(!de
 
 // INIT
 function _safeInit(){
-  try{ renderView(); renderRecs(); startRealtimeListener(); }
+  try{ renderView(); renderRecs(); }
   catch(e){ console.error('Init error:',e); }
+  setTimeout(function(){
+    loadFirebase(function(){
+      try{ startRealtimeListener(); }
+      catch(e){ console.warn('Firebase unavailable, running offline:',e); fbConnected=false; }
+    });
+  }, 500);
 }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_safeInit);
 else _safeInit();
@@ -1972,7 +2004,6 @@ function backToHome() {
   setTimeout(function(){ shell.style.display = 'none'; }, 460);
 }
 function backToLauncher() { backToHome(); }
-try { startRealtimeListener(); } catch(e) { console.error(e); }
 </script>
 
 <!-- Signature Pad Styles -->
@@ -2207,16 +2238,16 @@ function sigFinalize(){
       if(signedCount>0){try{localStorage.setItem('sigs_'+docRef.id,JSON.stringify(rec.signatures));}catch(e){}}
       rec._fbId=docRef.id;
       records.unshift(rec);
-      try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,200)));}catch(e){}
+      try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
       showSuccessWithSigs(rec,signedCount);
     }).catch(function(){
       records.unshift(rec);
-      try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,200)));}catch(e){}
+      try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
       showSuccessWithSigs(rec,signedCount); renderView();
     });
   } else {
     records.unshift(rec);
-    try{localStorage.setItem('exfan_records_v2',JSON.stringify(records.slice(0,200)));}catch(e){}
+    try{localStorage.setItem('hvac_kfmc',JSON.stringify(records.slice(0,200)));}catch(e){}
     showSuccessWithSigs(rec,signedCount); renderView();
   }
 }
