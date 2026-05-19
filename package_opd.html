@@ -664,7 +664,7 @@ body{background:#f0f2f5;color:#0d1b2a}
 
 
 <!-- Signature Modal -->
-<div id="sig-modal" style="display:none" class="sig-modal-bg">
+<div id="sig-modal" style="display:none" class="sig-modal-bg" onclick="if(event.target===this)closeSigModal()">
   <div class="sig-modal">
     <div class="sig-modal-title">✍️ Electronic Signatures</div>
     <div class="sig-modal-sub">Each person signs on their device before printing</div>
@@ -678,6 +678,7 @@ body{background:#f0f2f5;color:#0d1b2a}
       <canvas class="sig-pad" id="sig-canvas" height="130"></canvas>
     </div>
     <div class="sig-btns-row">
+      <button class="sig-clear" style="flex:1;margin-bottom:0" onclick="closeSigModal()">✕ Close</button>
       <button class="sig-clear" onclick="clearSig()">🗑️ Clear</button>
       <button class="sig-done" onclick="saveSig()">✅ Save Signature</button>
     </div>
@@ -1165,8 +1166,8 @@ function renderRecs(){
         </div>
       </div>
       ${r.photos&&r.photos.length?`<div style="display:flex;gap:5px;margin-top:6px;padding:0 2px;overflow-x:auto">
-        ${r.photos.slice(0,4).map((p,pi)=>`<img src="${p.data}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:.5px solid #e2e8f0;flex-shrink:0">`).join('')}
-        ${r.photos.length>4?`<div style="width:48px;height:48px;background:#f4f7fb;border-radius:6px;border:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8a94a6;flex-shrink:0">+${r.photos.length-4}</div>`:''}
+        ${r.photos.slice(0,4).map((p,pi)=>`<img src="${p.data}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:.5px solid #e2e8f0;flex-shrink:0;cursor:pointer;transition:transform .15s" onclick="openGallery(records[${i}].photos,${pi})" onmousedown="this.style.transform='scale(.92)'" onmouseup="this.style.transform=''" onmouseleave="this.style.transform=''">`).join('')}
+        ${r.photos.length>4?`<div style="width:48px;height:48px;background:#f4f7fb;border-radius:6px;border:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8a94a6;flex-shrink:0;cursor:pointer;font-weight:700" onclick="openGallery(records[${i}].photos,4)">+${r.photos.length-4}<br>more</div>`:''}
       </div>`:''}
     </div>`;}).join('');
 }
@@ -1789,6 +1790,7 @@ function shareReport(rec){
 //---
 var _sigRec=null, _sigData={0:null,1:null,2:null}, _sigTab=0, _sigDrawing=false, _sigCanvasReady=false;
 
+function closeSigModal(){document.getElementById('sig-modal').style.display='none';}
 function openSigModal(rec){
   _sigRec=rec;
   _sigData={0:null,1:null,2:null};
@@ -1904,6 +1906,30 @@ function proceedPrint(){
   }
 }
 
+// =====================================================
+// PHOTO GALLERY LIGHTBOX
+// =====================================================
+var _galPhotos=[],_galIdx=0;
+function openGallery(photos,idx){if(!photos||!photos.length)return;_galPhotos=photos;_galIdx=idx||0;document.getElementById('photo-gallery').style.display='flex';_galUpdate();}
+function _galUpdate(){var p=_galPhotos[_galIdx];document.getElementById('gallery-img').src=p&&p.data?p.data:(typeof p==='string'?p:'');document.getElementById('gallery-counter').textContent=(_galIdx+1)+' / '+_galPhotos.length;document.getElementById('gallery-prev').style.opacity=_galIdx>0?'1':'0.3';document.getElementById('gallery-next').style.opacity=_galIdx<_galPhotos.length-1?'1':'0.3';}
+function galleryPrev(){if(_galIdx>0){_galIdx--;_galUpdate();}}
+function galleryNext(){if(_galIdx<_galPhotos.length-1){_galIdx++;_galUpdate();}}
+function closeGallery(){document.getElementById('photo-gallery').style.display='none';}
+document.addEventListener('keydown',function(e){if(document.getElementById('photo-gallery').style.display==='none')return;if(e.key==='ArrowLeft')galleryPrev();else if(e.key==='ArrowRight')galleryNext();else if(e.key==='Escape')closeGallery();});
+(function(){var tx=0;document.addEventListener('touchstart',function(e){if(document.getElementById('photo-gallery').style.display!=='none')tx=e.touches[0].clientX;},{passive:true});document.addEventListener('touchend',function(e){if(document.getElementById('photo-gallery').style.display==='none')return;var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40){dx<0?galleryNext():galleryPrev();}},{passive:true});})();
+
 </script>
+
+<!-- Photo Gallery Lightbox -->
+<div id="photo-gallery" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.93);z-index:9999;align-items:center;justify-content:center;flex-direction:column" onclick="if(event.target===this)closeGallery()">
+  <button onclick="closeGallery()" style="position:absolute;top:16px;right:16px;background:rgba(255,255,255,.18);border:none;color:#fff;font-size:18px;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif">✕</button>
+  <div id="gallery-counter" style="position:absolute;top:22px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.8);font-size:13px;font-weight:700;font-family:system-ui,sans-serif;white-space:nowrap;pointer-events:none"></div>
+  <div style="width:100%;max-width:560px;display:flex;align-items:center;padding:0 10px;box-sizing:border-box">
+    <button id="gallery-prev" onclick="galleryPrev()" style="background:rgba(255,255,255,.18);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0;font-family:system-ui,sans-serif">‹</button>
+    <img id="gallery-img" src="" alt="" style="flex:1;max-height:74vh;max-width:calc(100% - 120px);object-fit:contain;border-radius:12px;margin:0 10px;display:block;box-shadow:0 8px 40px rgba(0,0,0,.6)">
+    <button id="gallery-next" onclick="galleryNext()" style="background:rgba(255,255,255,.18);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;padding:0;font-family:system-ui,sans-serif">›</button>
+  </div>
+</div>
+
 </body>
 </html>
