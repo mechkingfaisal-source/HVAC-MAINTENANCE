@@ -328,6 +328,38 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
 /* CSS filter for tabs */
 #rec-list[data-filter="unit"] .ri-zone{display:none!important}
 #rec-list[data-filter="zone"] .ri-unit{display:none!important}
+
+/* ── Smart Zone Badges (inside the 3 building categories) ── */
+.zbadge{position:relative;width:46px;height:46px;border-radius:13px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--zc,#0a2e5c) 0%,var(--zc2,#1a5fae) 100%);
+  box-shadow:0 4px 10px color-mix(in srgb,var(--zc,#0a2e5c) 40%,transparent),
+    inset 0 1px 0 rgba(255,255,255,.25),inset 0 -2px 0 rgba(0,0,0,.12);
+  overflow:hidden}
+.zbadge::before{content:"";position:absolute;inset:-30% -30% auto auto;width:60%;height:60%;
+  background:radial-gradient(circle,rgba(255,255,255,.35) 0%,transparent 65%);pointer-events:none}
+.zbadge::after{content:"";position:absolute;left:0;right:0;bottom:0;height:38%;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.18));pointer-events:none}
+.zbadge svg.zb-fan{position:absolute;width:54px;height:54px;opacity:.13;color:#fff;
+  animation:zb-spin 9s linear infinite}
+.zbadge .zb-lbl{position:relative;z-index:2;color:#fff;font-weight:900;
+  font-family:'Segoe UI',system-ui,sans-serif;letter-spacing:.02em;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);line-height:1}
+.zbadge .zb-lbl.s1{font-size:22px}
+.zbadge .zb-lbl.s2{font-size:15px}
+.zbadge .zb-lbl.s3{font-size:11px}
+.zbadge .zb-tag{position:absolute;bottom:3px;right:4px;z-index:2;
+  font-size:7px;font-weight:800;color:#fff;opacity:.85;letter-spacing:.04em}
+@keyframes zb-spin{to{transform:rotate(360deg)}}
+.sf-hdr .zbadge, .subfolder-hdr .zbadge{width:32px;height:32px;border-radius:10px;margin-right:8px;
+  box-shadow:0 2px 6px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.3)}
+.subfolder-hdr .zbadge svg, .sf-hdr .zbadge svg.zb-fan{width:38px;height:38px}
+.subfolder-hdr .zbadge .zb-lbl.s1, .sf-hdr .zbadge .zb-lbl.s1{font-size:15px}
+.subfolder-hdr .zbadge .zb-lbl.s2, .sf-hdr .zbadge .zb-lbl.s2{font-size:11px}
+.subfolder-hdr .zbadge .zb-lbl.s3, .sf-hdr .zbadge .zb-lbl.s3{font-size:9px}
+.subfolder-hdr .zbadge .zb-tag, .sf-hdr .zbadge .zb-tag{display:none}
+.sf-hdr-inner{display:flex;align-items:center;flex:1;min-width:0}
+
 </style>
 </head>
 <body class="home">
@@ -642,6 +674,30 @@ const FOLDERS = [
   },
 ];
 
+
+// Smart zone badge renderer — used inside the 3 building categories
+function zoneBadge(sf, folder, opts){
+  opts = opts||{};
+  var color = (folder && folder.color) || '#0a2e5c';
+  // lighter companion for gradient
+  var c2 = color === '#0a2e5c' ? '#1a5fae'
+         : color === '#1a5fae' ? '#3b8fdb'
+         : color === '#7b2d8b' ? '#b04bc8'
+         : color;
+  var raw = String(sf.id||sf.name||'');
+  var m = raw.match(/(\d+)/);
+  var lbl, cls;
+  if(folder && folder.id==='main' && m){ lbl = m[1]; cls = 's1'; }            // 1..9
+  else if(folder && folder.id==='sb' && m){ lbl = 'S'+m[1]; cls = 's2'; }     // S1/S2
+  else if(folder && folder.id==='mt' && m){ lbl = m[1]+'F'; cls = 's2'; }     // 3F/6F
+  else { lbl = (raw.replace(/[^A-Z0-9]/gi,'')||'Z').slice(0,3); cls = lbl.length>2?'s3':(lbl.length>1?'s2':'s1'); }
+  var fan = '<svg class="zb-fan" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+          + '<path d="M12 12c0-4 1.5-7 4-7s4 2 4 5-2 5-5 5c-1 0-2-1-3-3zm0 0c-4 0-7-1.5-7-4s2-4 5-4 5 2 5 5c0 1-1 2-3 3zm0 0c0 4-1.5 7-4 7s-4-2-4-5 2-5 5-5c1 0 2 1 3 3zm0 0c4 0 7 1.5 7 4s-2 4-5 4-5-2-5-5c0-1 1-2 3-3z"/>'
+          + '<circle cx="12" cy="12" r="1.6"/></svg>';
+  return '<span class="zbadge" style="--zc:'+color+';--zc2:'+c2+'">'+fan
+       + '<span class="zb-lbl '+cls+'">'+lbl+'</span></span>';
+}
+
 // Flat lookup for all units
 const ALL_UNITS = {};
 FOLDERS.forEach(f => f.subfolders.forEach(sf => sf.units.forEach(u => {
@@ -825,7 +881,7 @@ function renderFolder() {
     const pct = sf.units.length ? Math.round(doneCount/sf.units.length*100) : 0;
     html += `<div class="folder-card" onclick="openSubfolder('${sf.id}')" style="border-left:4px solid ${f.color}">
       <div class="fc-row">
-        <span class="fc-icon">${sf.icon||'📂'}</span>
+        ${zoneBadge(sf,f)}
         <div class="fc-info">
           <div class="fc-name">${sf.name}</div>
           <div class="fc-sub">${sf.en} · ${sf.units.length} units</div>
@@ -861,7 +917,7 @@ function renderSubfolder() {
     <span class="bc-item bc-active">📂 ${sf.name}</span>
   </div>
   <div class="subfolder-hdr" style="background:${f.color}">
-    <span>${sf.icon||'📂'} ${sf.name}</span>
+    <span class="sf-hdr-inner">${zoneBadge(sf,f)}<span>${sf.name}</span></span>
     <span class="zone-cnt">${sf.units.length} units</span>
   </div>`;
   sf.units.forEach(u => {
