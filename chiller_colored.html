@@ -1135,31 +1135,107 @@ function _zsRecCard(r,i){
       '<span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ '+(r.doneT||0)+'</span>'+
       (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
       '<span class="rp" style="background:#EBF4FF;color:#0a2e5c;font-weight:900">📋 Zone Log</span>'+
-      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
+      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
     '</div>'+
   '</div>';
 }
 
 function printZoneRec(rec){
-  var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
-  var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
-  var dateEl=document.getElementById('zs-date');
-  var savedDate=dateEl?dateEl.value:'';
-  var techEl=document.getElementById('zs-tech-input');
-  var savedTechVal=techEl?techEl.value:'';
-  zsZone=rec.zoneId||zsZone;
-  zsLvl=rec.lvl||zsLvl;
-  zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
-  if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
-  if(dateEl) dateEl.value=rec.date;
-  if(techEl) techEl.value=rec.tech;
-  zsOpenPrint();
-  setTimeout(function(){
-    zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
-    if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
-    if(dateEl) dateEl.value=savedDate;
-    if(techEl) techEl.value=savedTechVal;
-  },300);
+  // Build print directly from saved record — no DOM dependency
+  var tech=(rec.tech||'—').trim()||'—';
+  var date=rec.date||new Date().toISOString().slice(0,10);
+  var lvl=rec.lvl||zsLvl||'daily';
+  var recZoneId=rec.zoneId||'';
+  var zone=ZONES.find(function(z){return z.id===recZoneId;})||zsGetZone();
+  var recData=JSON.parse(JSON.stringify(rec.zsData||{}));
+  var checks=CHECKS[lvl].filter(function(c){return c.type!=='note';});
+  var units=zone.units.map(function(u){return ALL_UNITS[u.id];}).filter(Boolean);
+
+  var w=window.open('','_blank');
+  if(!w){alert('Enable popup windows');return;}
+
+  var thCells=checks.map(function(c){
+    return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
+  }).join('')+'<th style="min-width:100px">📝 Remarks</th>';
+
+  var rows=units.map(function(u,ri){
+    var data=recData[u.id]||{};
+    var togs=checks.filter(function(c){return c.type==='tog';});
+    var done=togs.filter(function(c){return data[c.id]===true;}).length;
+    var nd=togs.filter(function(c){return data[c.id]===false;}).length;
+    var cells=checks.map(function(c){
+      if(c.type==='num'){var v=data[c.id]||'';return '<td style="font-weight:700">'+(v||'—')+'</td>';}
+      var v=data[c.id];
+      return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
+    }).join('');
+    var remarks=data._remarks||'';
+    return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'
+      +'<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'
+      +cells
+      +'<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'
+      +'<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'
+      +'<td style="font-size:10px;color:#4a5568;text-align:left;padding:4px 6px">'+remarks+'</td>'
+      +'</tr>';
+  }).join('');
+
+  // Reuse exact same CSS and HTML structure as zsOpenPrint
+  w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8">'
+    +'<title>Zone Sheet — Chiller Units</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111}'
+    +'.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}'
+    +'.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}'
+    +'.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'
+    +'.hdr-title{font-size:14px;font-weight:800}.hdr-sub{font-size:9px;opacity:.7;margin-top:2px}'
+    +'.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'
+    +'.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}.meta-cell:last-child{border-right:none}'
+    +'.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'
+    +'.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}'
+    +'table{width:100%;border-collapse:collapse;font-size:10px}'
+    +'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3}'
+    +'th:first-child{text-align:left;min-width:80px}'
+    +'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'
+    +'td:first-child{text-align:left}'
+    +'.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'
+    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'
+    +'.sig-box{text-align:center}.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'
+    +'.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'
+    +'.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'
+    +'@media print{.no-print{display:none!important}body{padding:8px}}'
+    +'</style></head><body>'
+    +'<div class="no-print">'
+      +'<button class="btn-back" onclick="window.close()">← Back</button>'
+      +'<button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>'
+      +'<button class="btn-pr" onclick="window.print()">🖨️ Print</button>'
+      +'<div class="tip">💡 To Save as PDF: press the button ← select <b>«Save as PDF»</b>. Recommended: <b>Landscape</b></div>'
+    +'</div>'
+    +'<div class="main-hdr">'
+      +'<div><div class="hdr-title">❄️ Chiller Units PPM — Zone Log Sheet</div>'
+      +'<div class="hdr-sub">AL MAJAL AL ARABI GROUP | King Faisal Medical Complex</div></div>'
+      +'<div style="text-align:left"><div style="font-size:13px;font-weight:800">'+(typeof LVL_EN!=='undefined'?LVL_EN[lvl]:lvl)+'</div><div style="font-size:9px;opacity:.7">Maintenance</div></div>'
+    +'</div>'
+    +'<div class="meta-bar">'
+      +'<div class="meta-cell"><div class="meta-lbl">🗂️ Area</div><div class="meta-val">'+zone.name+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">⚙️ Level</div><div class="meta-val">'+(typeof LVL_EN!=='undefined'?LVL_EN[lvl]:lvl)+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">📅 Date</div><div class="meta-val">'+date+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">👷 Technician</div><div class="meta-val">'+tech+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">📦 Units</div><div class="meta-val">'+units.length+'</div></div>'
+    +'</div>'
+    +'<table><thead><tr><th>Unit</th>'+thCells+'<th style="background:#1a7a4a">✓ Done</th><th style="background:#c0392b">✗ F/up</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="sig-section">'
+      +'<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'
+      +'<div class="sig-grid">'
+        +'<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="footer"><span>Chiller Units PPM — Auto-generated</span><span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span></div>'
+    +'</body></html>');
+  w.document.close();
+  setTimeout(function(){w.print();},500);
 }
 
 function renderRecs(){
@@ -1562,6 +1638,97 @@ function zsSaveAll(){
   if(confirm(msg+'\n\nDo you want to print the zone log?')) zsOpenPrint();
 }
 
+
+function shareZoneRec(rec){
+  // Same as printZoneRec but opens with PDF save banner (no auto-print)
+  var tech=(rec.tech||'—').trim()||'—';
+  var date=rec.date||new Date().toISOString().slice(0,10);
+  var lvl=rec.lvl||zsLvl||'daily';
+  var recZoneId=rec.zoneId||'';
+  var zone=ZONES.find(function(z){return z.id===recZoneId;})||zsGetZone();
+  var recData=JSON.parse(JSON.stringify(rec.zsData||{}));
+  var checks=CHECKS[lvl].filter(function(c){return c.type!=='note';});
+  var units=zone.units.map(function(u){return ALL_UNITS[u.id];}).filter(Boolean);
+  var w=window.open('','_blank');
+  if(!w){alert('Enable popup windows');return;}
+  var thCells=checks.map(function(c){
+    return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
+  }).join('')+'<th style="min-width:100px">📝 Remarks</th>';
+  var rows=units.map(function(u,ri){
+    var data=recData[u.id]||{};
+    var togs=checks.filter(function(c){return c.type==='tog';});
+    var done=togs.filter(function(c){return data[c.id]===true;}).length;
+    var nd=togs.filter(function(c){return data[c.id]===false;}).length;
+    var cells=checks.map(function(c){
+      if(c.type==='num'){var v=data[c.id]||'';return '<td style="font-weight:700">'+(v||'—')+'</td>';}
+      var v=data[c.id];
+      return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
+    }).join('');
+    var remarks=data._remarks||'';
+    return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'
+      +'<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'
+      +cells
+      +'<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'
+      +'<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'
+      +'<td style="font-size:10px;color:#4a5568;text-align:left;padding:4px 6px">'+remarks+'</td>'
+      +'</tr>';
+  }).join('');
+  w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8"><title>Zone Sheet — Chiller Units</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111}'
+    +'.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:flex-start}'
+    +'.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.tip{background:#EBF4FF;border:.5px solid #B5D4F4;border-radius:6px;padding:7px 10px;font-size:10px;color:#0a2e5c;flex:1}'
+    +'.main-hdr{background:#0a2e5c;color:#fff;padding:10px 14px;border-radius:9px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}'
+    +'.hdr-title{font-size:14px;font-weight:800}.hdr-sub{font-size:9px;opacity:.7;margin-top:2px}'
+    +'.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'
+    +'.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}.meta-cell:last-child{border-right:none}'
+    +'.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'
+    +'.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}'
+    +'table{width:100%;border-collapse:collapse;font-size:10px}'
+    +'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3}'
+    +'th:first-child{text-align:left;min-width:80px}'
+    +'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'
+    +'td:first-child{text-align:left}'
+    +'.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'
+    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'
+    +'.sig-box{text-align:center}.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'
+    +'.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'
+    +'.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'
+    +'@media print{.no-print{display:none!important}body{padding:8px}}'
+    +'</style></head><body>'
+    +'<div class="no-print">'
+      +'<button class="btn-back" onclick="window.close()">← Back</button>'
+      +'<button class="btn-pdf" onclick="window.print()">📤 حفظ كـ PDF</button>'
+      +'<button class="btn-pr" onclick="window.print()">🖨️ طباعة</button>'
+      +'<div class="tip">💡 لحفظ كـ PDF: اضغط الزر أعلاه ← اختر <b>«Save as PDF»</b> من نافذة الطابعة</div>'
+    +'</div>'
+    +'<div class="main-hdr">'
+      +'<div><div class="hdr-title">❄️ Chiller Units PPM — Zone Log Sheet</div>'
+      +'<div class="hdr-sub">AL MAJAL AL ARABI GROUP | King Faisal Medical Complex</div></div>'
+      +'<div style="text-align:left"><div style="font-size:13px;font-weight:800">'+(typeof LVL_EN!=='undefined'?LVL_EN[lvl]:lvl)+'</div><div style="font-size:9px;opacity:.7">Maintenance</div></div>'
+    +'</div>'
+    +'<div class="meta-bar">'
+      +'<div class="meta-cell"><div class="meta-lbl">🗂️ Area</div><div class="meta-val">'+zone.name+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">⚙️ Level</div><div class="meta-val">'+(typeof LVL_EN!=='undefined'?LVL_EN[lvl]:lvl)+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">📅 Date</div><div class="meta-val">'+date+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">👷 Technician</div><div class="meta-val">'+tech+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">📦 Units</div><div class="meta-val">'+units.length+'</div></div>'
+    +'</div>'
+    +'<table><thead><tr><th>Unit</th>'+thCells+'<th style="background:#1a7a4a">✓ Done</th><th style="background:#c0392b">✗ F/up</th></tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="sig-section">'
+      +'<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'
+      +'<div class="sig-grid">'
+        +'<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'
+      +'</div>'
+    +'</div>'
+    +'<div class="footer"><span>Chiller Units PPM — Auto-generated</span><span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span></div>'
+    +'</body></html>');
+  w.document.close();
+}
 
 function zsOpenPrint(){
   var tech=(document.getElementById('zs-tech-input')&&document.getElementById('zs-tech-input').value||zsTechName||'—').trim()||'—';
