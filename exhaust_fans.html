@@ -401,6 +401,7 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
       </div>
     </div>
     <div class="pg" id="pg-records">
+      <div id="rec-folder-label" style="display:none;color:#fff;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px;margin-bottom:9px;letter-spacing:.02em;"></div>
       <div class="info">&#128161; Records saved on device &mdash; works offline. Syncs to cloud when connected.</div>
             <div class="rec-filter-tabs">
         <div class="rec-ftab active" id="rft-unit" onclick="setRecFilter('unit')">
@@ -425,6 +426,7 @@ body.app-mode{overflow:hidden;background:#f0f2f5}
       <div class="qgrid" id="qr-grid"></div>
     </div>
     <div class="pg" id="pg-zonesheet">
+      <div id="zs-folder-label" style="display:none;color:#fff;font-weight:700;font-size:12px;padding:7px 12px;border-radius:8px;margin-bottom:9px;letter-spacing:.02em;"></div>
       <div class="info" style="display:flex;align-items:center;gap:7px;font-size:11px">
         <span style="font-size:16px">📋</span>
         <span><b>Zone Maintenance Log</b> — Select a zone, assign a technician, then fill the checklist</span>
@@ -1383,36 +1385,56 @@ var ZONE_ICONS = {
   'MT6': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22V12l8-9 8 9v10"/><path d="M4 12h16"/><rect x="9" y="16" width="6" height="6"/></svg>',
 };
 
+// Returns zones filtered to the currently open folder (or all if none selected)
+function getActiveZones(){
+  if(selFolder){
+    return ZONES.filter(function(z){
+      return selFolder.subfolders.some(function(sf){ return sf.id === z.id; });
+    });
+  }
+  return ZONES;
+}
+
 function initZoneSheet(){
   var d = document.getElementById('zs-date');
   if(d && !d.value) d.value = new Date().toISOString().slice(0,10);
 
-  // Professional zone buttons
+  var activeZones = getActiveZones();
+
+  // Show folder label banner
+  var hdrEl = document.getElementById('zs-folder-label');
+  if(hdrEl){
+    hdrEl.textContent = selFolder ? ('Showing zones for: ' + selFolder.name) : 'All Buildings';
+    hdrEl.style.display = 'block';
+    hdrEl.style.background = selFolder ? (selFolder.color||'#0a2e5c') : '#0a2e5c';
+  }
+
+  // Professional zone buttons — filtered to current folder
   var zb = document.getElementById('zs-zone-btns');
-  zb.innerHTML = ZONES.map(function(z){
+  zb.innerHTML = activeZones.map(function(z){
     var icon = ZONE_ICONS[z.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'')+'" data-zone="'+z.id+'" onclick="zsSelectZone(\''+z.id+'\')">'
-      +'<span class="zb-icon">'+icon+'</span>'
-      +'<span class="zb-id">'+z.id+'</span>'
-      +'<span class="zb-en">'+z.en+'</span>'
-      +'</button>';
+    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'')+'" data-zone="'+z.id+'" onclick="zsSelectZone(\''+z.id+'\')">'      +'<span class="zb-icon">'+icon+'</span>'      +'<span class="zb-id">'+z.id+'</span>'      +'<span class="zb-en">'+z.en+'</span>'      +'</button>';
   }).join('');
 
   // Level tabs
   var lt = document.getElementById('zs-lvl-tabs');
   lt.innerHTML = Object.keys(LVL).map(function(k){
-    return '<button class="zs-ltab'+(zsLvl===k?' active':'')+'" onclick="zsSelectLvl(\''+k+'\')">'+LVL[k]+'</button>';
+    return '<button class="zs-ltab'+(zsLvl===k?' active':'')+'" onclick="zsSelectLvl(\''+k+'\')">'+ LVL[k]+'</button>';
   }).join('');
 
-  if(!zsZone && ZONES.length) zsSelectZone(ZONES[0].id);
+  // Reset zone if it belongs to a different folder
+  var zoneStillValid = activeZones.some(function(z){ return z.id === zsZone; });
+  if(!zoneStillValid) zsZone = null;
+
+  if(!zsZone && activeZones.length) zsSelectZone(activeZones[0].id);
   else { zsRenderTechCard(); zsRenderTable(); }
 }
-
 function zsSelectZone(zid){
   zsZone = zid;
   zsData = {};
+  var _az=getActiveZones();
   document.querySelectorAll('.zs-zbtn').forEach(function(b,i){
-    b.classList.toggle('active', ZONES[i].id === zid);
+    b.classList.toggle('active', _az[i] && _az[i].id === zid);
   });
   zsRenderTechCard();
   zsRenderTable();
@@ -1699,17 +1721,51 @@ function zsOpenPrint(){
 function renderRecs(){
   var _rfl=document.getElementById('rec-list');
   if(_rfl)_rfl.setAttribute('data-filter',typeof recFilter!=='undefined'?recFilter:'unit');
-  var _uC=records.filter(function(x){return !x._fromZoneSheet;}).length;
-  var _zC=records.filter(function(x){return !!x._fromZoneSheet;}).length;
+
+  // Get unit IDs belonging to the current folder (for filtering)
+  var folderUnitIds = null;
+  if(selFolder){
+    folderUnitIds = {};
+    selFolder.subfolders.forEach(function(sf){
+      sf.units.forEach(function(u){ folderUnitIds[typeof u==='string'?u:u.id] = true; });
+    });
+  }
+
+  // Filter records to current folder
+  var visibleRecords = records.filter(function(r){
+    if(!folderUnitIds) return true; // show all if no folder selected
+    if(r._zoneRecord){
+      // zone records: check if the zone belongs to this folder
+      return selFolder.subfolders.some(function(sf){ return sf.id === r.zoneId; });
+    }
+    // unit records
+    return r.unitId && folderUnitIds[r.unitId];
+  });
+
+  var _uC=visibleRecords.filter(function(x){return !x._fromZoneSheet;}).length;
+  var _zC=visibleRecords.filter(function(x){return !!x._fromZoneSheet;}).length;
   var _cu=document.getElementById('rft-unit-cnt');if(_cu)_cu.textContent=_uC+' record'+(_uC!==1?'s':'');
   var _cz=document.getElementById('rft-zone-cnt');if(_cz)_cz.textContent=_zC+' record'+(_zC!==1?'s':'');
+
+  // Folder label in records header
+  var recFolderLbl=document.getElementById('rec-folder-label');
+  if(recFolderLbl){
+    recFolderLbl.textContent = selFolder ? ('📁 ' + selFolder.name) : '📁 All Buildings';
+    recFolderLbl.style.display='block';
+    recFolderLbl.style.background = selFolder ? (selFolder.color||'#0a2e5c') : '#0a2e5c';
+  }
+
   var el=document.getElementById('rec-list');
-  if(!records.length){
+  if(!el) return;
+  if(!visibleRecords.length){
     el.innerHTML='<div class="empty"><div class="empty-icon">📋</div>'+
-    (fbConnected?'<div>No records yet</div>':'<div>Loading... <br><small>Check your internet connection</small></div>')+'</div>';
+    (fbConnected?'<div>No records for this building yet</div>':'<div>Loading... <br><small>Check your internet connection</small></div>')+'</div>';
     return;
   }
-  el.innerHTML=records.map(function(r,i){
+
+  // Map visible records to original indices for delete/sign/print
+  el.innerHTML=visibleRecords.map(function(r){
+    var i=records.indexOf(r);
     if(r._zoneRecord)return _zsRecCard(r,i);
     var photoCount=(r.data&&r.data._photoCount)||0;
     var syncBadge=r._fbId?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️ Saved</span>':'<span class="rp" style="background:#fff3e0;color:#a05c00">⏳ Local</span>';
@@ -1730,7 +1786,6 @@ function renderRecs(){
       '</div></div>';
   }).join('');
 }
-
 function deleteRec(i){
   const r=records[i];
   if(!confirm(`🗑️ Delete this record?\n\n${_rName(r)} — ${r._zoneRecord?'Zone Sheet':LVL_EN[r.lvl]}\n📅 ${r.date}\n👷 ${r.tech}\n\nThis cannot be undone.`))return;
