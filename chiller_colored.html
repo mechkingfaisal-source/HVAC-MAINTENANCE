@@ -1140,7 +1140,7 @@ function _zsRecCard(r,i){
   '</div>';
 }
 
-function printZoneRec(rec){
+function printZoneRec(rec, sigs){
   // Build print directly from saved record — no DOM dependency
   var tech=(rec.tech||'—').trim()||'—';
   var date=rec.date||new Date().toISOString().slice(0,10);
@@ -1234,9 +1234,9 @@ function printZoneRec(rec){
     +'<div class="sig-section">'
       +'<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'
       +'<div class="sig-grid">'
-        +'<div class="sig-box"><div class="sig-name">Technician</div><div class="sig-line">Name & Signature</div></div>'
-        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div><div class="sig-line">Name & Signature</div></div>'
-        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div><div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">Technician</div>'+(sigs&&sigs[0]?'<img src="'+sigs[0]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div style="height:55px;border-bottom:1.5px solid #0a2e5c;margin:4px 0"></div>')+'<div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">HVAC Engineer</div>'+(sigs&&sigs[1]?'<img src="'+sigs[1]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div style="height:55px;border-bottom:1.5px solid #0a2e5c;margin:4px 0"></div>')+'<div class="sig-line">Name & Signature</div></div>'
+        +'<div class="sig-box"><div class="sig-name">Head of Mech. Dept.</div>'+(sigs&&sigs[2]?'<img src="'+sigs[2]+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">':'<div style="height:55px;border-bottom:1.5px solid #0a2e5c;margin:4px 0"></div>')+'<div class="sig-line">Name & Signature</div></div>'
       +'</div>'
     +'</div>'
     +'<div class="footer"><span>Chiller Units PPM — Auto-generated</span><span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span></div>'
@@ -2138,7 +2138,12 @@ function closeSigModal(){document.getElementById('sig-modal').style.display='non
 //---
 function proceedPrint(){
   document.getElementById('sig-modal').style.display='none';
-  doPrint(_sigRec, _sigData);
+  if(_sigRec&&(_sigRec._zoneRecord||_sigRec._fromZoneSheet&&_sigRec.zsData)){
+    // Zone record — use zone-aware print function
+    printZoneRec(_sigRec, _sigData);
+  } else {
+    doPrint(_sigRec, _sigData);
+  }
   _sigRec=null;_sigData={0:null,1:null,2:null};
 }
 
