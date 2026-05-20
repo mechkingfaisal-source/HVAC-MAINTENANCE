@@ -768,26 +768,78 @@ function _zsRecCard(r,i){
   '</div>';
 }
 
-function printZoneRec(rec){
-  var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
-  var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
-  var dateEl=document.getElementById('zs-date');
-  var savedDate=dateEl?dateEl.value:'';
-  var techEl=document.getElementById('zs-tech-input');
-  var savedTechVal=techEl?techEl.value:'';
-  zsZone=rec.zoneId||zsZone;
-  zsLvl=rec.lvl||zsLvl;
-  zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
-  if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
-  if(dateEl) dateEl.value=rec.date;
-  if(techEl) techEl.value=rec.tech;
-  zsOpenPrint();
-  setTimeout(function(){
-    zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
-    if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
-    if(dateEl) dateEl.value=savedDate;
-    if(techEl) techEl.value=savedTechVal;
-  },300);
+function printZoneRec(rec,sigs){
+  var zone=ZONES.find(z=>z.id===rec.zoneId)||{name:rec.zoneName||'Zone',units:[]};
+  var lvl=rec.lvl||'monthly';
+  var date=rec.date||new Date().toISOString().slice(0,10);
+  var tech=rec.tech||'—';
+  var zsDataSnap=JSON.parse(JSON.stringify(rec.zsData||{}));
+  var checks=CHECKS[lvl].filter(function(c){return c.type!=='note';});
+
+  var rows=zone.units.map(function(u){
+    var uid=typeof u==='string'?u:(u.id||u);
+    var unit=ALL_UNITS[uid];
+    var d=zsDataSnap[uid]||{};
+    var cells=checks.map(function(c){
+      var v=d[c.id];
+      var disp=c.type==='num'?(v||'—'):(v===true?'✓':v===false?'✗':'—');
+      var col=v===true?'#1a7a4a':v===false?'#c0392b':'#8a94a6';
+      return'<td style="text-align:center;font-weight:700;color:'+col+'">'+disp+'</td>';
+    }).join('');
+    var unitName=unit?unit.name:uid;
+    return'<tr><td style="font-weight:700;color:#0a2e5c">'+unitName+'</td>'+cells+'<td style="font-size:10px;color:#4a5568">'+(d._rem||'—')+'</td></tr>';
+  }).join('');
+
+  var sigHtml='';
+  var sigLabels=[{name:'Technician',role:'TECHNICIAN'},{name:'HVAC Engineer',role:'HVAC ENG.'},{name:'Head of Dept.',role:'MECH. HEAD'}];
+  sigHtml='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-top:16px;border-top:2px solid #0a2e5c;padding-top:14px">'+sigLabels.map(function(s,i){
+    var dataUrl=sigs&&sigs[i];
+    return'<div style="text-align:center"><div style="font-size:11px;font-weight:700;color:#0a2e5c;margin-bottom:2px">'+s.name+'</div><div style="font-size:9px;color:#8a94a6;margin-bottom:20px;text-transform:uppercase;letter-spacing:.06em">'+s.role+'</div>'+(dataUrl?'<img src="'+dataUrl+'" style="height:50px;max-width:100%;object-fit:contain">':'<div style="height:50px"></div>')+'<div style="border-top:1.5px solid #0a2e5c;margin-top:4px;padding-top:4px;font-size:9px;color:#8a94a6">Signature & Date</div></div>';
+  }).join('')+'</div>';
+
+  var lvlName=LVL_EN[lvl]||lvl;
+  var pbanner='<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:flex-start" class="no-print"><button onclick="window.close()" style="background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">← Back</button><button onclick="window.print()" style="background:#1a7a4a;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">📤 Save as PDF</button><button onclick="window.print()" style="background:#0a2e5c;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-size:13px;font-weight:700;cursor:pointer">🖨️ Print</button></div>';
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Zone Sheet — '+zone.name+'</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:\'Segoe UI\',sans-serif;padding:28px;font-size:12px;color:#111}'
+    +'.logo-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0 14px;border-bottom:2px solid #0a2e5c;margin-bottom:14px}'
+    +'.lvl-bar{background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;padding:5px 13px;border-radius:6px;margin-bottom:12px;font-size:11px;font-weight:700}'
+    +'.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:14px;border:2px solid #0a2e5c;border-radius:10px;overflow:hidden}'
+    +'.meta-box{padding:10px 14px;border-right:.5px solid #0a2e5c;border-bottom:.5px solid #0a2e5c}'
+    +'.meta-box:nth-child(even){border-right:none}.meta-box:nth-child(3),.meta-box:nth-child(4){border-bottom:none}'
+    +'.meta-lbl{font-size:10px;color:#8a94a6;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}'
+    +'.meta-val{font-size:14px;font-weight:800;color:#0a2e5c}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:14px}'
+    +'th{background:#0a2e5c;color:#fff;padding:7px 6px;font-size:10px;font-weight:700;text-align:center}'
+    +'th:first-child{text-align:left;min-width:80px}'
+    +'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:6px 5px;font-size:11px}'
+    +'td:first-child{text-align:left;padding-left:8px}'
+    +'tr:nth-child(even) td{background:#f9fafb}'
+    +'.footer{margin-top:12px;font-size:9px;color:#aaa;display:flex;justify-content:space-between;border-top:1px solid #e8ecf0;padding-top:8px}'
+    +'.no-print{display:flex;gap:8px;margin-bottom:16px}'
+    +'@media print{body{padding:15px}.no-print{display:none!important}}'
+    +'</style></head><body>'
+    +pbanner
+    +'<div class="logo-bar">'
+    +'<div style="text-align:left"><div style="font-size:12px;font-weight:700;color:#0a2e5c">AL MAJAL AL ARABI GROUP</div><div style="font-size:10px;color:#8a94a6">MAINTENANCE SECTOR</div></div>'
+    +'<div style="text-align:center;flex:1;padding:0 8px"><h1 style="font-size:14px;font-weight:700;color:#0a2e5c">💧 Chilled Water Pumps — Preventive Maintenance</h1><p style="font-size:10px;color:#8a94a6;margin-top:2px">HVAC DEPARTMENT — King Faisal Medical Complex</p></div>'
+    +'<div style="text-align:right"><div style="font-size:12px;font-weight:700;color:#0a2e5c">KFMC</div><div style="font-size:10px;color:#8a94a6">PPM SYSTEM</div></div>'
+    +'</div>'
+    +'<div class="lvl-bar">'+lvlName+' Maintenance — Zone Sheet Report</div>'
+    +'<div class="meta-grid">'
+    +'<div class="meta-box"><div class="meta-lbl">📊 Zone</div><div class="meta-val">'+zone.name+'</div></div>'
+    +'<div class="meta-box"><div class="meta-lbl">📅 Date</div><div class="meta-val">'+date+'</div></div>'
+    +'<div class="meta-box"><div class="meta-lbl">👷 Technician</div><div class="meta-val">'+tech+'</div></div>'
+    +'<div class="meta-box"><div class="meta-lbl">🏢 Units</div><div class="meta-val">'+(rec.unitCount||zone.units.length)+' Pumps</div></div>'
+    +'</div>'
+    +'<table><thead><tr><th>Pump</th>'+checks.map(function(c){return'<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'</th>';}).join('')+'<th>Remarks</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table>'
+    +sigHtml
+    +'<div class="footer"><span>HVAC Maintenance System — CH.W. Pumps PPM</span><span>'+new Date().toLocaleDateString('en-GB')+'</span></div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');if(!w){alert('Enable pop-ups to print');return;}
+  w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);
 }
 
 function renderRecs(){
@@ -992,7 +1044,11 @@ function updateSigPrintBtn(){
 }
 function proceedPrint(){
   document.getElementById('sig-modal').style.display='none';
-  doPrint(_sigRec,_sigData);
+  if(_sigRec&&(_sigRec._zoneRecord||_sigRec._fromZoneSheet)){
+    printZoneRec(_sigRec,_sigData);
+  }else{
+    doPrint(_sigRec,_sigData);
+  }
   _sigRec=null;_sigData={0:null,1:null,2:null};
 }
 
