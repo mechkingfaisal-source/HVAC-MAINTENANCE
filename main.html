@@ -931,7 +931,6 @@ function zsRenderTable(){
   if(!zone) return;
   var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
   var units  = zone.units.map(function(uid){ return ALL_UNITS[uid]; }).filter(Boolean);
-  var sigSection = buildPrintSignatureSection(sigs,'Authorized Signatures');
 
   // Init data
   units.forEach(function(u){
@@ -1051,7 +1050,7 @@ function zsSaveAll(){
 }
 
 
-function zsOpenPrint(sigs){
+function zsOpenPrint(sigs,autoPrint){
   if(!zsZone){ alert('Select a zone first'); return; }
   var tech  = (zsTechPerZone[zsZone]||'').trim() || '—';
   var date  = document.getElementById('zs-date').value || new Date().toISOString().slice(0,10);
@@ -1061,6 +1060,9 @@ function zsOpenPrint(sigs){
 
   var w = window.open('','_blank');
   if(!w){ alert('Enable popup windows'); return; }
+
+  var _printSigs = (sigs && Object.keys(sigs).length) ? sigs : (zsZone && ZONES.find(function(z){return z.id===zsZone;}) ? null : null);
+  var sigSection = buildPrintSignatureSection(_printSigs, 'Authorized Signatures');
 
   var thCells = checks.map(function(c){
     return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
@@ -1168,6 +1170,7 @@ function zsOpenPrint(sigs){
     '</div>'+
     '</body></html>');
   w.document.close();
+  if(autoPrint) setTimeout(function(){w.print();},400);
 }
 
 //---
@@ -1204,7 +1207,7 @@ function _zsRecCard(r,i){
       (r.notDoneT?'<span class="rp" style="background:#fef0f0;color:#c0392b">✗ '+r.notDoneT+'</span>':'')+
       '<span class="rp" style="background:#EBF4FF;color:#0a2e5c;font-weight:900">📋 Zone Log</span>'+
     '</div>'+
-    '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
+    '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;"><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records['+i+'])">✍️ Sign</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printZoneRec(records['+i+'])">🖨️ Print</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareAsPDFZone(records['+i+'])">💾 Save PDF</button><button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec('+i+')">🗑️ Delete</button></div>'+
   '</div>';
 }
 
@@ -1221,7 +1224,29 @@ function printZoneRec(rec,sigs){
   if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
   if(dateEl) dateEl.value=rec.date;
   if(techEl) techEl.value=rec.tech;
-  zsOpenPrint(sigs);
+  zsOpenPrint(sigs,true);
+  setTimeout(function(){
+    zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
+    if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
+    if(dateEl) dateEl.value=savedDate;
+    if(techEl) techEl.value=savedTechVal;
+  },300);
+}
+
+function shareAsPDFZone(rec,sigs){
+  var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
+  var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
+  var dateEl=document.getElementById('zs-date');
+  var savedDate=dateEl?dateEl.value:'';
+  var techEl=document.getElementById('zs-tech-input');
+  var savedTechVal=techEl?techEl.value:'';
+  zsZone=rec.zoneId||zsZone;
+  zsLvl=rec.lvl||zsLvl;
+  zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
+  if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
+  if(dateEl) dateEl.value=rec.date;
+  if(techEl) techEl.value=rec.tech;
+  zsOpenPrint(sigs,false);
   setTimeout(function(){
     zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
     if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
