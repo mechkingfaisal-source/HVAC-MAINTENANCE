@@ -1115,27 +1115,103 @@ function _zsRecCard(r,i){
   '</div>';
 }
 
-function printZoneRec(rec){
-  var savedZone=zsZone,savedLvl=zsLvl,savedData=zsData;
-  var savedTech=JSON.parse(JSON.stringify(typeof zsTechPerZone!=='undefined'?zsTechPerZone:{}));
-  var dateEl=document.getElementById('zs-date');
-  var savedDate=dateEl?dateEl.value:'';
-  var techEl=document.getElementById('zs-tech-input');
-  var savedTechVal=techEl?techEl.value:'';
-  zsZone=rec.zoneId||zsZone;
-  zsLvl=rec.lvl||zsLvl;
-  zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
-  if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone]=rec.tech;
-  if(dateEl) dateEl.value=rec.date;
-  if(techEl) techEl.value=rec.tech;
-  zsOpenPrint();
-  setTimeout(function(){
-    zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
-    if(typeof zsTechPerZone!=='undefined') Object.assign(zsTechPerZone,savedTech);
-    if(dateEl) dateEl.value=savedDate;
-    if(techEl) techEl.value=savedTechVal;
-  },300);
+
+// Self-contained zone print — works from records tab with optional signatures
+function zsPrintRec(rec, sigs){
+  var zone = (typeof ZONES!=='undefined') ? (ZONES.find(function(z){return z.id===rec.zoneId;})||ZONES[0]) : null;
+  if(!zone){ alert('Zone not found'); return; }
+  var lvl   = rec.lvl || 'monthly';
+  var date  = rec.date || new Date().toISOString().slice(0,10);
+  var tech  = (rec.tech||'—').trim()||'—';
+  var data  = rec.zsData || {};
+  var checks= (CHECKS[lvl]||[]).filter(function(c){return c.type!=='note';});
+  var units = zone.units.map(function(u){return ALL_UNITS[u.id];}).filter(Boolean);
+
+  var thCells = checks.map(function(c){
+    return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
+  }).join('') + '<th style="background:#1a7a4a">✓ Done</th><th style="background:#c0392b">✗ F/up</th><th style="min-width:100px">📝 Remarks</th>';
+
+  var rows = units.map(function(u,ri){
+    var d   = data[u.id]||{};
+    var togs= checks.filter(function(c){return c.type==='tog';});
+    var done= togs.filter(function(c){return d[c.id]===true;}).length;
+    var nd  = togs.filter(function(c){return d[c.id]===false;}).length;
+    var cells = checks.map(function(c){
+      if(c.type==='num'){var v=d[c.id]||'';return '<td style="font-weight:700">'+(v||'—')+'</td>';}
+      var v=d[c.id];
+      return '<td style="font-size:13px">'+(v===true?'<span style="color:#1a7a4a;font-weight:900">✓</span>':v===false?'<span style="color:#c0392b;font-weight:900">✗</span>':'<span style="color:#ccc">—</span>')+'</td>';
+    }).join('');
+    var remarks=d._remarks||'';
+    return '<tr style="background:'+(ri%2?'#f9fafb':'#fff')+'">'
+      +'<td style="font-weight:700;color:#0a2e5c;white-space:nowrap">'+(ri+1)+'. '+u.name+'</td>'
+      +cells
+      +'<td style="color:#1a7a4a;font-weight:700">'+done+'</td>'
+      +'<td style="color:'+(nd?'#c0392b':'#1a7a4a')+';font-weight:700">'+nd+'</td>'
+      +'<td style="font-size:10px;color:#4a5568;text-align:left;padding:4px 6px">'+remarks+'</td>'
+      +'</tr>';
+  }).join('');
+
+  function sigBox(name, src){
+    return '<div class="sig-box"><div class="sig-name">'+name+'</div>'
+      + (src
+          ? '<img src="'+src+'" style="height:55px;max-width:140px;object-fit:contain;border-bottom:1.5px solid #0a2e5c;display:block;margin:4px auto">'
+          : '<div class="sig-line">Name &amp; Signature</div>')
+      + '</div>';
+  }
+
+  var w = window.open('','_blank');
+  if(!w){ alert('Enable popup windows'); return; }
+  w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8">'
+    +'<title>Zone Sheet — '+zone.name+'</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:11px;padding:14px;color:#111}'
+    +'.no-print{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}'
+    +'.btn-pdf{background:#1a7a4a;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-pr{background:#0a2e5c;color:#fff;border:none;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.btn-back{background:#e8ecf4;color:#0a2e5c;border:1.5px solid #b5c8e0;border-radius:7px;padding:9px 16px;font-size:12px;font-weight:700;cursor:pointer}'
+    +'.meta-bar{display:flex;gap:0;margin-bottom:10px;border:1.5px solid #0a2e5c;border-radius:9px;overflow:hidden}'
+    +'.meta-cell{flex:1;padding:7px 10px;border-right:.5px solid #d1d8e0}.meta-cell:last-child{border-right:none}'
+    +'.meta-lbl{font-size:9px;color:#8a94a6;text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:2px}'
+    +'.meta-val{font-size:12px;font-weight:800;color:#0a2e5c}'
+    +'table{width:100%;border-collapse:collapse;font-size:10px}'
+    +'th{background:#0a2e5c;color:#fff;padding:6px 5px;text-align:center;border-right:1px solid rgba(255,255,255,.2);font-size:9px;line-height:1.3}'
+    +'th:first-child{text-align:left;min-width:80px}'
+    +'td{border-bottom:1px solid #e8ecf0;border-right:1px solid #e8ecf0;padding:5px 4px;text-align:center;vertical-align:middle}'
+    +'td:first-child{text-align:left}'
+    +'.sig-section{margin-top:18px;border-top:2px solid #0a2e5c;padding-top:12px}'
+    +'.sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}'
+    +'.sig-box{text-align:center}.sig-name{font-size:10px;font-weight:700;color:#0a2e5c}'
+    +'.sig-line{border-top:1.5px solid #0a2e5c;margin-top:32px;padding-top:3px;font-size:8px;color:#aaa}'
+    +'.footer{margin-top:10px;border-top:1px solid #e8ecf0;padding-top:6px;font-size:9px;color:#aaa;display:flex;justify-content:space-between}'
+    +'@media print{.no-print{display:none!important}body{padding:8px}}'
+    +'</style></head><body>'
+    +'<div class="no-print">'
+      +'<button class="btn-back" onclick="window.close()">← Back</button>'
+      +'<button class="btn-pdf" onclick="window.print()">📤 Save as PDF</button>'
+      +'<button class="btn-pr" onclick="window.print()">🖨️ Print</button>'
+    +'</div>'
+    +'<div class="meta-bar">'
+      +'<div class="meta-cell"><div class="meta-lbl">📅 Date</div><div class="meta-val">'+date+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">🏢 Zone</div><div class="meta-val">'+zone.name+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">⚙️ Level</div><div class="meta-val">'+(LVL_EN&&LVL_EN[lvl]||lvl)+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">👷 Technician</div><div class="meta-val">'+tech+'</div></div>'
+      +'<div class="meta-cell"><div class="meta-lbl">📦 Units</div><div class="meta-val">'+units.length+'</div></div>'
+    +'</div>'
+    +'<table><thead><tr><th>Unit</th>'+thCells+'</tr></thead><tbody>'+rows+'</tbody></table>'
+    +'<div class="sig-section">'
+      +'<div style="font-size:10px;font-weight:700;color:#0a2e5c;text-align:center;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Authorized Signatures</div>'
+      +'<div class="sig-grid">'
+        + sigBox('Technician',        sigs&&sigs[0])
+        + sigBox('HVAC Engineer',     sigs&&sigs[1])
+        + sigBox('Head of Mech. Dept.', sigs&&sigs[2])
+      +'</div>'
+    +'</div>'
+    +'<div class="footer"><span>Package Units PPM — Auto-generated</span><span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span></div>'
+    +'</body></html>');
+  w.document.close();
+  if(sigs){ setTimeout(function(){ try{ w.print(); }catch(e){} }, 500); }
 }
+
+function printZoneRec(rec){ zsPrintRec(rec, null); }
 
 function renderRecs(){
   var _rfl=document.getElementById('rec-list');
@@ -1357,6 +1433,7 @@ function renderQR(){
 var zsLvl='monthly';
 var zsData={};
 var zsTechName='';
+var zsZone='OPD';
 
 function initZoneSheet(){
   var d=document.getElementById('zs-date');
@@ -1883,24 +1960,7 @@ function proceedPrint(){
   var rec=_sigRec, sigs=_sigData;
   _sigRec=null; _sigData={0:null,1:null,2:null};
   if(rec&&rec._zoneRecord){
-    var savedZone=zsZone, savedLvl=zsLvl, savedData=zsData;
-    var dateEl=document.getElementById('zs-date');
-    var savedDate=dateEl?dateEl.value:'';
-    var techEl=document.getElementById('zs-tech-input');
-    var savedTechVal=techEl?techEl.value:'';
-    zsZone=rec.zoneId||zsZone;
-    zsLvl=rec.lvl||zsLvl;
-    zsData=JSON.parse(JSON.stringify(rec.zsData||{}));
-    if(typeof zsTechPerZone!=='undefined') zsTechPerZone[zsZone||'OPD']=rec.tech;
-    if(dateEl) dateEl.value=rec.date;
-    if(techEl) techEl.value=rec.tech;
-    zsOpenPrint(sigs);
-    setTimeout(function(){
-      zsZone=savedZone; zsLvl=savedLvl; zsData=savedData;
-      if(typeof zsTechPerZone!=='undefined'&&savedZone) zsTechPerZone[savedZone]=savedTechVal;
-      if(dateEl) dateEl.value=savedDate;
-      if(techEl) techEl.value=savedTechVal;
-    },300);
+    zsPrintRec(rec, sigs);
   } else {
     doPrint(rec, sigs);
   }
