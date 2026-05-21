@@ -486,21 +486,21 @@ body{background:#f0f2f5;color:#0d1b2a}
 .zs-zbtn:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .zs-zbtn:active{transform:scale(.95)}
 .zb-icon{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px;transition:all .2s}
-.zb-icon svg{width:14px;height:14px;transition:stroke .2s}
+.zb-icon svg{width:14px;height:14px;transition:stroke .2s,color .2s}
 .zb-id{font-size:11px;font-weight:900;letter-spacing:.02em;transition:color .2s}
 .zb-en{font-size:8px;font-weight:500;text-align:center;max-width:70px;line-height:1.2;color:#8a94a6;transition:color .2s}
 
 /* Inactive icon colours per zone */
-.zs-zbtn[data-zone="2ND"] .zb-icon{background:linear-gradient(135deg,#e0eaff,#c7d9ff)} .zs-zbtn[data-zone="2ND"] .zb-icon svg{stroke:#3b5bdb}
-.zs-zbtn[data-zone="BSM"] .zb-icon{background:linear-gradient(135deg,#d3f9d8,#b2f2bb)} .zs-zbtn[data-zone="BSM"] .zb-icon svg{stroke:#2f9e44}
-.zs-zbtn[data-zone="6TH"] .zb-icon{background:linear-gradient(135deg,#fff0cc,#ffe066)} .zs-zbtn[data-zone="6TH"] .zb-icon svg{stroke:#e67700}
-.zs-zbtn[data-zone="3RD"] .zb-icon{background:linear-gradient(135deg,#ffd6e0,#ffa8c5)} .zs-zbtn[data-zone="3RD"] .zb-icon svg{stroke:#c2255c}
+.zs-zbtn[data-zone="2ND"] .zb-icon{background:linear-gradient(135deg,#e0eaff,#c7d9ff)} .zs-zbtn[data-zone="2ND"] .zb-icon svg{stroke:#3b5bdb;color:#3b5bdb}
+.zs-zbtn[data-zone="BSM"] .zb-icon{background:linear-gradient(135deg,#d3f9d8,#b2f2bb)} .zs-zbtn[data-zone="BSM"] .zb-icon svg{stroke:#2f9e44;color:#2f9e44}
+.zs-zbtn[data-zone="6TH"] .zb-icon{background:linear-gradient(135deg,#fff0cc,#ffe066)} .zs-zbtn[data-zone="6TH"] .zb-icon svg{stroke:#e67700;color:#e67700}
+.zs-zbtn[data-zone="3RD"] .zb-icon{background:linear-gradient(135deg,#ffd6e0,#ffa8c5)} .zs-zbtn[data-zone="3RD"] .zb-icon svg{stroke:#c2255c;color:#c2255c}
 
 /* Active states */
 .zs-zbtn.active{color:#fff;box-shadow:0 4px 14px rgba(0,0,0,.22);border-color:transparent}
 .zs-zbtn.active .zb-en{color:rgba(255,255,255,.75)}
 .zs-zbtn.active .zb-icon{background:rgba(255,255,255,.2)}
-.zs-zbtn.active .zb-icon svg{stroke:#fff}
+.zs-zbtn.active .zb-icon svg{stroke:#fff;color:#fff;filter:brightness(0) invert(1)}
 
 .zs-zbtn[data-zone="2ND"].active{background:linear-gradient(135deg,#4c6ef5,#3b5bdb)} .zs-zbtn[data-zone="2ND"].active .zb-id{color:#fff}
 .zs-zbtn[data-zone="BSM"].active{background:linear-gradient(135deg,#40c057,#2f9e44)} .zs-zbtn[data-zone="BSM"].active .zb-id{color:#fff}
@@ -828,6 +828,12 @@ const CHECKS={
 
 const LVL={daily:'☀️ Daily',weekly:'📅 Weekly',monthly:'🗓️ Monthly',halfyearly:'📊 Half Yearly',annually:'🔧 Annually'};
 const LVL_EN={daily:'Daily',weekly:'Weekly',monthly:'Monthly',halfyearly:'Half Yearly',annually:'Annually'};
+var ZONE_ICONS = {
+  '2ND': '<svg viewBox="0 0 24 24" fill="none" stroke="#3b5bdb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
+  'BSM': '<svg viewBox="0 0 24 24" fill="none" stroke="#2f9e44" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8"/><path d="M18 14V8"/><path d="M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
+  '6TH': '<svg viewBox="0 0 24 24" fill="none" stroke="#e67700" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+  '3RD': '<svg viewBox="0 0 24 24" fill="none" stroke="#c2255c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
+};
 
 // =====================================================
 // FIREBASE INIT — Same cloud as main dashboard (hvac-ppm)
@@ -854,7 +860,7 @@ function loadFirebase(cb){
    s2.src='https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js';
    s2.onload=function(){
      try{
-       if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+       if(!firebase.apps||!firebase.apps.length) firebase.initializeApp(firebaseConfig);
        db=firebase.firestore();
      }catch(e){ console.warn('Firebase init failed:',e); db=null; }
      cb();
@@ -1214,8 +1220,8 @@ function printZoneRec(rec){
 function renderRecs(){
   var _rfl=document.getElementById('rec-list');
   if(_rfl)_rfl.setAttribute('data-filter',typeof recFilter!=='undefined'?recFilter:'unit');
-  var _uC=records.filter(function(x){return !x._fromZoneSheet;}).length;
-  var _zC=records.filter(function(x){return !!x._fromZoneSheet;}).length;
+  var _uC=records.filter(function(x){return !x._zoneRecord;}).length;
+  var _zC=records.filter(function(x){return !!x._zoneRecord;}).length;
   var _cu=document.getElementById('rft-unit-cnt');if(_cu)_cu.textContent=_uC+' record'+(_uC!==1?'s':'');
   var _cz=document.getElementById('rft-zone-cnt');if(_cz)_cz.textContent=_zC+' record'+(_zC!==1?'s':'');
  const el=document.getElementById('rec-list');
@@ -1224,9 +1230,9 @@ function renderRecs(){
  return;
  }
  el.innerHTML=records.map((r,i)=>{if(r._zoneRecord)return _zsRecCard(r,i);return`
- <div class="ri ${(r._fromZoneSheet&&r._zoneRecord)?'ri-zone':'ri-unit'}">
+ <div class="ri ${r._zoneRecord?'ri-zone':'ri-unit'}">
  <div class="rrow"><span class="rname">${_rName(r)} — ${r._zoneRecord?'Zone Sheet':LVL_EN[r.lvl]}</span><span class="rdate">${r.date}</span></div>
- <div class="rtech">👷 ${r.tech} | ${r.unit.zoneName}</div>
+ <div class="rtech">👷 ${r.tech} | ${r.unit?.zoneName||r.unit?.name||'—'}</div>
  <div class="rpills">
  <span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ ${r.doneT}</span>
  ${r.notDoneT?`<span class="rp" style="background:#fef0f0;color:#c0392b">✗ ${r.notDoneT}</span>`:''}
@@ -1475,6 +1481,7 @@ function printR(rec,sigs){
 // =====================================================
 
 
+var SITE_URL=(function(){return window.location.href.split('?')[0].replace(/\/+$/,'');})();
 function renderQR(){
  const zone=ZONES.find(z=>z.id===qrZone);
  const grid=document.getElementById('qr-grid');
@@ -1494,7 +1501,7 @@ function renderQR(){
  el.innerHTML='';
  try{
  new QRCode(el,{
- text:u.id+'-KFMC',
+ text:(typeof SITE_URL!=='undefined'?SITE_URL:window.location.href.split('?')[0])+'?unit='+encodeURIComponent(u.id),
  width:110,height:110,
  colorDark:'#0a2e5c',
  colorLight:'#ffffff',
@@ -1571,12 +1578,6 @@ if(document.readyState==='loading'){
 }else{ _safeInit(); }
 
 
-var ZONE_ICONS = {
-  '2ND': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>',
-  'BSM': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="20" height="8" rx="2"/><path d="M6 14V8"/><path d="M18 14V8"/><path d="M2 10h20"/><circle cx="12" cy="5" r="3"/></svg>',
-  '6TH': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-6 9 6v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
-  '3RD': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>'
-};
 // ── ZONE SHEET VARIABLES ──
 var zsZone = null;
 var zsLvl  = 'monthly';
@@ -1647,7 +1648,7 @@ function zsRenderTable(){
   var zone = ZONES.find(function(z){ return z.id === zsZone; });
   if(!zone) return;
   var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
-  var units = zone.units.map(function(u){ return ALL_UNITS[u.id !== undefined ? u.id : u]; }).filter(Boolean);
+  var units = zone.units.map(function(u){ return ALL_UNITS[u.id||u]; }).filter(Boolean);
 
   units.forEach(function(u){
     if(!zsData[u.id]) zsData[u.id] = {};
@@ -1664,7 +1665,7 @@ function zsRenderTable(){
   var tbody = '<tbody>'+units.map(function(u){
     var remarksVal = (zsData[u.id]&&zsData[u.id]._remarks)||'';
     return '<tr>'+
-      '<td>'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+zone.en+'</div></td>'+
+      '<td style="position:sticky;left:0;background:#fff;z-index:1;font-weight:700;color:#0a2e5c;white-space:nowrap">'+u.name+'<div style="font-size:9px;color:#8a94a6;font-weight:400">'+zone.en+'</div></td>'+
       checks.map(function(c){
         if(c.type === 'num'){
           var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
@@ -1780,7 +1781,7 @@ function zsOpenPrint(){
 
   var thCells = checks.map(function(c){
     return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
-  }).join('')+'<th style="min-width:100px">📝 Remarks</th>';
+  }).join('');
 
   var rows = units.map(function(u, ri){
     var data = zsData[u.id] || {};
@@ -1862,6 +1863,7 @@ function zsOpenPrint(){
         '<th>Unit</th>'+thCells+
         '<th style="background:#1a7a4a">✓ Done</th>'+
         '<th style="background:#c0392b">✗ Follow-up</th>'+
+        '<th style="min-width:100px">📝 Remarks</th>'+
       '</tr></thead>'+
       '<tbody>'+rows+'</tbody>'+
     '</table>'+
