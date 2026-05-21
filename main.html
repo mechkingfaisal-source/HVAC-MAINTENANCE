@@ -1616,6 +1616,7 @@ function printReport(rec,sigs){
     '<div class="sb" style="background:#fef0f0"><div style="font-size:22px;font-weight:700;color:#c0392b">'+rec.notDoneT+'</div><div style="font-size:10px;color:#c0392b;margin-top:2px">Needs Follow-up</div></div></div>'+
     '<table><tr><th>Maintenance Item</th><th>Description</th><th>Result</th></tr>'+rows+'</table>'+
     (rec.data&&rec.data.notes?'<div style="background:#fff3e0;border-radius:7px;padding:10px;font-size:12px;line-height:1.7;margin-bottom:10px"><b>📝 Remarks:</b><br><br>'+rec.data.notes+'</div>':'')+
+    sigSection+
     '<div class="ft">HVAC Maintenance System — King Faisal Medical Complex — '+new Date().toLocaleDateString('ar-SA')+'</div>'+
     '</body></html>');
   w.document.close();setTimeout(function(){w.print();},400);
