@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=0">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <meta name="theme-color" content="#0a2e5c">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -607,7 +607,7 @@ body{background:#f0f2f5;color:#0d1b2a}
  <div class="tab" onclick="go('form')"><span class="tab-icon">📋</span>Form</div>
  <div class="tab" onclick="go('records')"><span class="tab-icon">📁</span>Records</div>
  <div class="tab" onclick="go('zonesheet')"><span class="tab-icon">📊</span>Zone Sheet</div>
- <div class="tab" onclick="go('qr')"><span class="tab-icon">📱</span>QR Codes</div>
+ <div class="tab" onclick="go('qr')"><span class="tab-icon">⬛</span>QR Codes</div>
  </div>
 
  <!-- Pages -->
@@ -946,7 +946,7 @@ function renderUnits(filter){
  units.forEach(u=>{
  const unit=ALL_UNITS[u.id];
  const lastRec=records.find(r=>r.unitId===u.id);
- html+=`<div class="ucard ${selUnit?.id===u.id?'sel':''}" onclick="pickUnit('${u.id}')">
+ html+=`<div class="ucard ${(selUnit&&selUnit.id===u.id)?'sel':''}" onclick="pickUnit('${u.id}')">
  <div class="urow"><span class="uname">${unit.name}</span><span class="bdg ${lastRec?'b-ok':'b-due'}">${lastRec?'✓ Done':'⏳ Due'}</span></div>
  <div class="umeta">📍 ${unit.zoneName}${lastRec?' | Last: '+lastRec.date:''}</div>
  </div>`;
@@ -1032,13 +1032,13 @@ function buildForm(){
 }
 
 function setLvl(lvl){
- fd._tech=document.getElementById('tech')?.value||fd._tech||'';
- fd._date=document.getElementById('fdate')?.value||fd._date||'';
+ fd._tech=(document.getElementById('tech')||{}).value||fd._tech||'';
+ fd._date=(document.getElementById('fdate')||{}).value||fd._date||'';
  selLvl=lvl;const tmp={_tech:fd._tech,_date:fd._date};fd=tmp;buildForm();
 }
 function sv(key,val){
- fd._tech=document.getElementById('tech')?.value||fd._tech||'';
- fd._date=document.getElementById('fdate')?.value||fd._date||'';
+ fd._tech=(document.getElementById('tech')||{}).value||fd._tech||'';
+ fd._date=(document.getElementById('fdate')||{}).value||fd._date||'';
  fd[key]=val;buildForm();
 }
 
@@ -1098,8 +1098,8 @@ function renderPhotoGrid(){
 // ────────────────────────────────────────────────────────────────
 
 function submitF(){
- fd._tech=document.getElementById('tech')?.value||'';
- fd._date=document.getElementById('fdate')?.value||'';
+ fd._tech=(document.getElementById('tech')||{}).value||'';
+ fd._date=(document.getElementById('fdate')||{}).value||'';
  if(!fd._tech.trim()){alert('Please enter technician name');return;}
  const togs=CHECKS[selLvl].filter(c=>c.type==='tog');
  const doneT=togs.filter(c=>fd[c.id]===true).length;
@@ -1217,6 +1217,44 @@ function printZoneRec(rec){
   },300);
 }
 
+function _renderPhotoRow(r, i) {
+  if (!r.photos || !r.photos.length) return '';
+  var thumbStyle = 'width:48px;height:48px;object-fit:cover;border-radius:6px;border:.5px solid #e2e8f0;flex-shrink:0;cursor:pointer;transition:transform .15s';
+  var thumbs = r.photos.slice(0,4).map(function(p, pi) {
+    return '<img src="'+p.data+'" style="'+thumbStyle+'" onclick="openGallery(records['+i+'].photos,'+pi+')" onmousedown="this.style.transform=\'scale(.92)\'" onmouseup="this.style.transform=\'\'" onmouseleave="this.style.transform=\'\'">';
+  }).join('');
+  var more = '';
+  if (r.photos.length > 4) {
+    more = '<div style="width:48px;height:48px;background:#f4f7fb;border-radius:6px;border:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8a94a6;flex-shrink:0;cursor:pointer;font-weight:700" onclick="openGallery(records['+i+'].photos,4)">+' + (r.photos.length-4) + '<br>more</div>';
+  }
+  return '<div style="display:flex;gap:5px;margin-top:6px;padding:0 2px;overflow-x:auto">' + thumbs + more + '</div>';
+}
+
+function _renderUnitRecCard(r, i) {
+  var lvlName = LVL_EN[r.lvl] || r.lvl || '';
+  var zoneTxt = (r.unit && r.unit.zoneName) || (r.unit && r.unit.name) || '—';
+  var notDonePill = r.notDoneT ? '<span class="rp" style="background:#fef0f0;color:#c0392b">✗ ' + r.notDoneT + '</span>' : '';
+  var notesPill = (r.data && r.data.notes) ? '<span class="rp" style="background:#fff3e0;color:#a05c00">📝</span>' : '';
+  var syncPill = r._fbId ? '<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️ Saved</span>' : '<span class="rp" style="background:#fff3e0;color:#a05c00">⏳ Local</span>';
+  var btnStyle = 'flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;color:#fff;letter-spacing:.02em;font-family:system-ui,sans-serif;';
+  return '<div class="ri ri-unit">' +
+    '<div class="rrow"><span class="rname">' + _rName(r) + ' — ' + lvlName + '</span><span class="rdate">' + r.date + '</span></div>' +
+    '<div class="rtech">👷 ' + r.tech + ' | ' + zoneTxt + '</div>' +
+    '<div class="rpills">' +
+      '<span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ ' + r.doneT + '</span>' +
+      notDonePill + notesPill + syncPill +
+      '<div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;">' +
+        '<button style="'+btnStyle+'background:linear-gradient(135deg,#0a2e5c,#1a5fae);box-shadow:0 3px 8px rgba(10,46,92,.4)" onclick="showMod(records['+i+'])">📨 Report</button>' +
+        '<button style="'+btnStyle+'background:linear-gradient(135deg,#0a2e5c,#1a5fae);box-shadow:0 3px 8px rgba(10,46,92,.4)" onclick="openSigModal(records['+i+'])">✍️ Sign</button>' +
+        '<button style="'+btnStyle+'background:linear-gradient(135deg,#1565c0,#1a5fae);box-shadow:0 3px 8px rgba(21,101,192,.4)" onclick="printR(records['+i+'])">🖨️ Print</button>' +
+        '<button style="'+btnStyle+'background:linear-gradient(135deg,#1a7a4a,#25a066);box-shadow:0 3px 8px rgba(26,122,74,.4)" onclick="shareAsPDF(records['+i+'])">💾 Save PDF</button>' +
+        '<button style="'+btnStyle+'background:linear-gradient(135deg,#c0392b,#e74c3c);box-shadow:0 3px 8px rgba(192,57,43,.4)" onclick="deleteRec('+i+')">🗑️ Delete</button>' +
+      '</div>' +
+    '</div>' +
+    _renderPhotoRow(r, i) +
+  '</div>';
+}
+
 function renderRecs(){
   var _rfl=document.getElementById('rec-list');
   if(_rfl)_rfl.setAttribute('data-filter',typeof recFilter!=='undefined'?recFilter:'unit');
@@ -1224,33 +1262,15 @@ function renderRecs(){
   var _zC=records.filter(function(x){return !!x._zoneRecord;}).length;
   var _cu=document.getElementById('rft-unit-cnt');if(_cu)_cu.textContent=_uC+' record'+(_uC!==1?'s':'');
   var _cz=document.getElementById('rft-zone-cnt');if(_cz)_cz.textContent=_zC+' record'+(_zC!==1?'s':'');
- const el=document.getElementById('rec-list');
- if(!records.length){
- el.innerHTML=`<div class="empty-state"><div class="empty-icon">${fbConnected?'📋':'🔄'}</div><div class="empty-txt">${fbConnected?'No records yet<br>Start maintaining a unit':'Loading records...<br><small>Please check your internet connection</small>'}</div></div>`;
- return;
- }
- el.innerHTML=records.map((r,i)=>{if(r._zoneRecord)return _zsRecCard(r,i);return`
- <div class="ri ${r._zoneRecord?'ri-zone':'ri-unit'}">
- <div class="rrow"><span class="rname">${_rName(r)} — ${r._zoneRecord?'Zone Sheet':LVL_EN[r.lvl]}</span><span class="rdate">${r.date}</span></div>
- <div class="rtech">👷 ${r.tech} | ${r.unit?.zoneName||r.unit?.name||'—'}</div>
- <div class="rpills">
- <span class="rp" style="background:#e8f8f0;color:#1a7a4a">✓ ${r.doneT}</span>
- ${r.notDoneT?`<span class="rp" style="background:#fef0f0;color:#c0392b">✗ ${r.notDoneT}</span>`:''}
- ${r.data.notes?`<span class="rp" style="background:#fff3e0;color:#a05c00">📝</span>`:''}
- ${r._fbId?'<span class="rp" style="background:#e8f0ff;color:#1a5fae">☁️ Saved</span>':'<span class="rp" style="background:#fff3e0;color:#a05c00">⏳ Local</span>'}
- <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;">
- <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="showMod(records[${i}])">📨 Report</button>
- <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#0a2e5c,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(10,46,92,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="openSigModal(records[${i}])">✍️ Sign</button>
- <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1565c0,#1a5fae);color:#fff;box-shadow:0 3px 8px rgba(21,101,192,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="printR(records[${i}])">🖨️ Print</button>
- <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#1a7a4a,#25a066);color:#fff;box-shadow:0 3px 8px rgba(26,122,74,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="shareAsPDF(records[${i}])">💾 Save PDF</button>
- <button style="flex:1;min-width:80px;font-size:12px;font-weight:700;padding:8px 10px;border-radius:10px;border:none;cursor:pointer;background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;box-shadow:0 3px 8px rgba(192,57,43,.4);letter-spacing:.02em;font-family:system-ui,sans-serif;" onclick="deleteRec(${i})">🗑️ Delete</button>
- </div>
- </div>
- ${r.photos&&r.photos.length?`<div style="display:flex;gap:5px;margin-top:6px;padding:0 2px;overflow-x:auto">
- ${r.photos.slice(0,4).map((p,pi)=>`<img src="${p.data}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:.5px solid #e2e8f0;flex-shrink:0;cursor:pointer;transition:transform .15s" onclick="openGallery(records[${i}].photos,${pi})" onmousedown="this.style.transform='scale(.92)'" onmouseup="this.style.transform=''" onmouseleave="this.style.transform=''">`).join('')}
- ${r.photos.length>4?`<div style="width:48px;height:48px;background:#f4f7fb;border-radius:6px;border:.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8a94a6;flex-shrink:0;cursor:pointer;font-weight:700" onclick="openGallery(records[${i}].photos,4)">+${r.photos.length-4}<br>more</div>`:''}
- </div>`:''}
- </div>`).join('');
+  var el=document.getElementById('rec-list');
+  if(!records.length){
+    el.innerHTML='<div class="empty-state"><div class="empty-icon">'+(fbConnected?'📋':'🔄')+'</div><div class="empty-txt">'+(fbConnected?'No records yet<br>Start maintaining a unit':'Loading records...<br><small>Please check your internet connection</small>')+'</div></div>';
+    return;
+  }
+  el.innerHTML=records.map(function(r,i){
+    if(r._zoneRecord) return _zsRecCard(r,i);
+    return _renderUnitRecCard(r,i);
+  }).join('');
 }
 
 function deleteRec(i){
@@ -1292,7 +1312,7 @@ HVAC DEPARTMENT — King Faisal Medical Complex
 }
 function closeM(){document.getElementById('modal').style.display='none';}
 function copyR(){
- if(navigator.clipboard?.writeText){
+ if(navigator.clipboard&&navigator.clipboard.writeText){
  navigator.clipboard.writeText(window._rpt||'').then(()=>alert('✅ Report copied!\nPaste now in WhatsApp or Email')).catch(()=>fallbackCopy());
  } else {fallbackCopy();}
 }
@@ -1303,41 +1323,15 @@ function fallbackCopy(){
  alert('✅ Report copied!');
 }
 
-
-// ── PRINT HELPER (no popup needed) ──────────────────
-function _printHTML(html){
-  var old = document.getElementById('_pf');
-  if(old) old.parentNode.removeChild(old);
-  var closePrev = document.getElementById('_pfclose');
-  if(closePrev) closePrev.parentNode.removeChild(closePrev);
-  var iframe = document.createElement('iframe');
-  iframe.id = '_pf';
-  iframe.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;border:none;z-index:99999;background:#fff;';
-  document.body.appendChild(iframe);
-  iframe.contentDocument.open();
-  iframe.contentDocument.write(html);
-  iframe.contentDocument.close();
-  var closeBtn = document.createElement('button');
-  closeBtn.id = '_pfclose';
-  closeBtn.textContent = '✕ Close';
-  closeBtn.style.cssText = 'position:fixed;top:12px;right:12px;z-index:100000;background:#c0392b;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(0,0,0,.3);font-family:system-ui,sans-serif';
-  closeBtn.onclick = function(){ 
-    var f=document.getElementById('_pf'); if(f) f.parentNode.removeChild(f);
-    var b=document.getElementById('_pfclose'); if(b) b.parentNode.removeChild(b);
-  };
-  document.body.appendChild(closeBtn);
-  setTimeout(function(){ 
-    try{ var f=document.getElementById('_pf'); if(f){f.contentWindow.focus();f.contentWindow.print();} }catch(e){}
-  }, 600);
-}
-
 function shareAsPDF(rec){
  const checks=CHECKS[rec.lvl].filter(c=>c.type!=='note');
-  const rows=checks.map(c=>{const v=rec.data[c.id];
+ const w=window.open('','_blank');
+ if(!w){alert('Please enable pop-ups');return;}
+ const rows=checks.map(c=>{const v=rec.data[c.id];
  const res=c.type==='num'?`<span style="font-weight:600">${v||'—'} ${c.unit||''}</span>`:(v===true?'<span style="color:green;font-weight:600">✓ Done</span>':v===false?'<span style="color:red;font-weight:600">✗ Not Done</span>':'<span style="color:#aaa">—</span>');
  return`<tr><td><b>${c.lbl}</b></td><td style="font-size:12px;color:#0a2e5c;font-weight:800;font-family:Arial,sans-serif">${c.sub}</td><td>${res}</td></tr>`;
  }).join('');
- var _html=(`<!DOCTYPE html><html ><head><meta charset="UTF-8">
+ w.document.write(`<!DOCTYPE html><html ><head><meta charset="UTF-8">
  <title>Report — ${rec.unit.name}</title>
  <style>
  *{box-sizing:border-box;margin:0;padding:0}
@@ -1412,7 +1406,7 @@ function shareAsPDF(rec){
  <span>King Faisal Medical Complex | ${new Date().toLocaleDateString('ar-SA')}</span>
  </div>
  </body></html>`);
- _printHTML(_html);
+ w.document.close();
 }
 
 // =====================================================
@@ -1420,7 +1414,9 @@ function shareAsPDF(rec){
 // =====================================================
 function printR(rec,sigs){
  const checks=CHECKS[rec.lvl].filter(c=>c.type!=='note');
-  var _html=(`<!DOCTYPE html><html ><head><meta charset="UTF-8">
+ const w=window.open('','_blank');
+ if(!w){alert('Please enable pop-ups to print');return;}
+ w.document.write(`<!DOCTYPE html><html ><head><meta charset="UTF-8">
  <title>Maintenance Report — ${rec.unit.name}</title>
  <style>
  *{box-sizing:border-box;margin:0;padding:0}
@@ -1496,7 +1492,8 @@ function printR(rec,sigs){
  <span>King Faisal Medical Complex | ${new Date().toLocaleDateString('ar-SA')}</span>
  </div>
  </body></html>`);
- _printHTML(_html);
+ w.document.close();
+ setTimeout(()=>w.print(),500);
 }
 
 // =====================================================
@@ -1545,7 +1542,7 @@ function renderQRZoneTabs(){
  var container=document.getElementById('qr-zone-tabs');
  if(!container)return;
  container.innerHTML=ZONES.map(function(z){
-   return '<button class="lt'+(qrZone===z.id?' active':'')+'" onclick="qrZone=\''+z.id+"'";renderQRZoneTabs();renderQR();">'+z.name+'</button>';
+   return '<button class="lt'+(qrZone===z.id?' active':'')+'" onclick="qrZone=\''+z.id+'\';renderQRZoneTabs();renderQR();">'+z.name+'</button>';
  }).join('');
 }
 
@@ -1614,7 +1611,7 @@ function initZoneSheet(){
   var zb = document.getElementById('zs-zone-btns');
   zb.innerHTML = ZONES.map(function(z){
     var icon = ZONE_ICONS[z.id] || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>';
-    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'').replace(/'/g,"")+'" data-zone="'+z.id+'" onclick="zsSelectZone(\''+z.id+"')">'+
+    return '<button class="zs-zbtn'+(zsZone===z.id?' active':'').replace(/'/g,"")+'" data-zone="'+z.id+'" onclick="zsSelectZone(\''+z.id+'\')">'+
       '<span class="zb-icon">'+icon+'</span>'+
       '<span class="zb-id">'+z.id+'</span>'+
       '<span class="zb-en">'+z.en+'</span>'+
@@ -1623,7 +1620,7 @@ function initZoneSheet(){
 
   var lt = document.getElementById('zs-lvl-tabs');
   lt.innerHTML = Object.keys(LVL).map(function(k){
-    return '<button class="zs-ltab'+(zsLvl===k?' active':'').replace(/'/g,"")+'" onclick="zsSelectLvl(\''+k+"')">'+LVL[k]+'</button>';
+    return '<button class="zs-ltab'+(zsLvl===k?' active':'').replace(/'/g,"")+'" onclick="zsSelectLvl(\''+k+'\')">'+LVL[k]+'</button>';
   }).join('');
 
   if(!zsZone && ZONES.length) zsSelectZone(ZONES[0].id);
@@ -1652,7 +1649,7 @@ function zsRenderTechCard(){
     '<div class="zs-tech-info">'+
     '<div class="zs-tech-label">👷 Technician — '+zone.id+'</div>'+
     '<div class="zs-tech-zone">'+zone.en+' Zone ('+zone.units.length+' units)</div>'+
-    '<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+"']=this.value">'+
+    '<input class="zs-tech-input" id="zs-tech-'+zsZone+'" placeholder="Enter technician name for '+zone.en+'..." value="'+val+'" oninput="zsTechPerZone[\''+zsZone+'\']=this.value">'+
     '</div>'+
     '</div>';
 }
@@ -1692,14 +1689,14 @@ function zsRenderTable(){
       checks.map(function(c){
         if(c.type === 'num'){
           var val = (zsData[u.id]&&zsData[u.id][c.id]!==undefined) ? zsData[u.id][c.id] : '';
-          return '<td><input class="zs-num" value="'+val+'" oninput="zsSetNum(\''+u.id+"'",\''+c.id+"'",this.value)" placeholder="—"></td>';
+          return '<td><input class="zs-num" value="'+val+'" oninput="zsSetNum(\''+u.id+'\',\''+c.id+'\',this.value)" placeholder="—"></td>';
         }
         var v = zsData[u.id] ? zsData[u.id][c.id] : null;
         var cls = v===true?'yes':v===false?'no':'';
         var lbl = v===true?'✓':v===false?'✗':'—';
-        return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+"'",\''+c.id+"'",this)">'+lbl+'</button></td>';
+        return '<td><button class="zs-tog '+cls+'" onclick="zsTog(\''+u.id+'\',\''+c.id+'\',this)">'+lbl+'</button></td>';
       }).join('')+
-      '<td style="position:sticky;right:0;background:#f0f6ff;border-left:2px solid #b5d4f4;z-index:1"><input style="width:130px;border:1.5px solid #b5d4f4;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+"'",this.value)"></td>'+
+      '<td style="position:sticky;right:0;background:#f0f6ff;border-left:2px solid #b5d4f4;z-index:1"><input style="width:130px;border:1.5px solid #b5d4f4;border-radius:5px;padding:3px 6px;font-size:11px;font-family:Arial,sans-serif;color:#0d1b2a;background:#fff" placeholder="Remarks..." value="'+remarksVal.replace(/"/g,'&quot;')+'" oninput="zsSetRemarks(\''+u.id+'\',this.value)"></td>'+
     '</tr>';
   }).join('')+'</tbody>';
 
@@ -1799,6 +1796,8 @@ function zsOpenPrint(){
   var checks = CHECKS[zsLvl].filter(function(c){ return c.type !== 'note'; });
   var units = zone.units.map(function(u){ return ALL_UNITS[u.id||u]; }).filter(Boolean);
 
+  var w = window.open('','_blank');
+  if(!w){ alert('Enable popup windows'); return; }
 
   var thCells = checks.map(function(c){
     return '<th>'+c.lbl+(c.unit?' ('+c.unit+')':'')+'<br><span style="font-weight:400;font-size:8px;opacity:.7">'+c.sub+'</span></th>';
@@ -1827,7 +1826,7 @@ function zsOpenPrint(){
     '</tr>';
   }).join('');
 
-  var _html=('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8">'+
+  w.document.write('<!DOCTYPE html><html dir="ltr"><head><meta charset="UTF-8">'+
     '<title>Zone Sheet - '+zone.name+'</title>'+
     '<style>'+
     '*{box-sizing:border-box;margin:0;padding:0}'+
@@ -1901,7 +1900,7 @@ function zsOpenPrint(){
       '<span>King Faisal Medical Complex | '+new Date().toLocaleDateString('en-GB')+'</span>'+
     '</div>'+
     '</body></html>');
-  _printHTML(_html);
+  w.document.close();
 }
 
 // =====================================================
@@ -2038,6 +2037,5 @@ document.addEventListener('keydown',function(e){if(document.getElementById('phot
   </div>
 </div>
 
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
